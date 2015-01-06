@@ -45,6 +45,7 @@ function lovecat.onrequest(req, client)
         page = '_default'
     end
     local res = lovecat.pages[page]
+    local mime = lovecat.pages_mime[page] or 'text/html'
     if type(res) == 'function' then
         local success, err = pcall(function()
             res = res(lovecat, req)
@@ -55,7 +56,7 @@ function lovecat.onrequest(req, client)
             return res
         end
     end
-    res = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n" .. res
+    res = "HTTP/1.1 200 OK\r\nContent-Type: " .. mime .. "\r\n\r\n" .. res
     return res
 end
 
@@ -154,6 +155,12 @@ function lovecat.static_file(filename)
 end
 
 lovecat.pages = {}
+lovecat.pages_mime = {}
+
+--==--==--==-- CUT! --==--==--==--
+
+-- the code below are for development,
+-- and will be replaced automatically by a releasing script
 
 lovecat.pages["_default"] = [[
     <!DOCTYPE html>
@@ -166,12 +173,13 @@ lovecat.pages["_default"] = [[
     <body>
         <div id='page'></div>
         <script src="/_lovecat_/app.js"></script>
+        <script>document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
     </body>
     </html>
 ]]
 
--- for development
-lovecat.pages["_lovecat_/app.css"] = lovecat.load_file('../css/app.css')
-lovecat.pages["_lovecat_/app.js"] = lovecat.load_file('../cjsx/generated.js')
+lovecat.pages["_lovecat_/app.css"] = lovecat.static_file('../css/app.css')
+lovecat.pages_mime["_lovecat_/app.css"] = 'text/css'
+lovecat.pages["_lovecat_/app.js"] = lovecat.static_file('../cjsx/generated.js')
 
-return lovecat -- must be the last line
+return lovecat

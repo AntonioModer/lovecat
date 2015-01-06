@@ -1,0 +1,10 @@
+{
+  "name": "lovecat",
+  "description": "Web-based Parameter Tuning for Love2d",
+  "author": "Yucheng Zhang",
+  "private": true,
+  "license": "MIT",
+  "dependencies": {
+    "react": "~0.12.2"
+  }
+}

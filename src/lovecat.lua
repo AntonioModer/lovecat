@@ -29,14 +29,195 @@ local lovecat = {
 }
 
 lovecat.host = "*"
-lovecat.port = 8000
+lovecat.port = 7000
 lovecat.whitelist = { "127.0.0.1", "192.168.*.*" }
+lovecat.save_file = 'lovecat-saved.lua'
 
-function lovecat.init()
+function lovecat.init_confs()
+    lovecat.number = lovecat.namespace_root({
+        name = 'number',
+        default = 0.5,
+        data_to_file = function (ns, v) return lovecat.value_to_str(v) end
+    })
+
+    lovecat.point = lovecat.namespace_root({
+        name = 'point',
+        default = {0, 0},
+        data_to_file = function (ns, v) return lovecat.value_to_str(v) end
+    })
+
+    lovecat.color = lovecat.namespace_root({
+        name = 'color',
+        default = function ()
+            return { math.random() * 360, 100 }
+        end,
+        data_to_file = function (ns, v) return lovecat.value_to_str(v) end
+    })
+
+    lovecat.grid = lovecat.namespace_root({
+        name = 'grid',
+        default = function ()
+            local r = ns._CONF_.nrow
+            local c = ns._CONF_.ncol
+            return lovecat.table_repeated(r, function()
+                lovecat.table_repeated(c, 'empty')
+            end)
+        end,
+        data_to_file = function (ns, v) return lovecat.value_to_str(v) end
+    })
+end
+
+function lovecat.namespace_isleaf(ident)
+    if type(ident) ~= 'string' then return true end
+    return not (('A'):byte() <= ident:byte() and
+                ('Z'):byte() >= ident:byte())
+end
+
+lovecat.namespace_meta = {
+    __index = function (ns, ident)
+        if lovecat.namespace_isleaf(ident) then
+            local data = lovecat.data_app_get(ns, ident)
+            if ns._CONF_.data_to_app then
+                data = ns._CONF_.data_to_app(ns, data)
+            end
+            lovecat.active_mark(ns)
+            return data
+        else
+            local node = lovecat.namespace_newnode(ns, ident)
+            rawset(ns, ident, node)
+            return node
+        end
+    end
+}
+
+function lovecat.namespace_root(confs)
+    local ns = { _CONF_ = confs }
+    ns._CONF_.fullname = { ns._CONF_.name }
+    ns._CONF_.strname = ns._CONF_.name
+    ns._CONF_.parent = nil
+    setmetatable(ns, lovecat.namespace_meta)
+    table.insert(lovecat.roots, ns._CONF_.name)
+    return ns
+end
+
+function lovecat.namespace_newnode(parent, ident)
+    local ns = { _CONF_ = {} }
+    ns._CONF_.name = ident
+    ns._CONF_.parent = parent
+    ns._CONF_.fullname = lovecat.table_copy(parent._CONF_.fullname)
+    table.insert(ns._CONF_.fullname, ident)
+    ns._CONF_.strname = table.concat(lovecat.map(ns._CONF_.fullname, tostring), ".")
+    setmetatable(ns._CONF_, { __index = parent._CONF_ })
+    setmetatable(ns, lovecat.namespace_meta)
+    return ns
+end
+
+function lovecat.active_mark(ns)
+end
+
+function lovecat.active_update(dt)
+end
+
+function lovecat.active_get()
+end
+
+function lovecat.data_scope(ns)
+    local x = lovecat.data
+    for _, name in ipairs(ns._CONF_.fullname) do
+        if x[name] == nil then
+            x[name] = {}
+        end
+        x = x[name]
+    end
+    return x
+end
+
+function lovecat.data_app_get(ns, ident)
+    local data = lovecat.data_scope(ns)
+    if data[ident] == nil then
+        local new_val = ns._CONF_.default
+        if type(new_val) == 'function' then
+            new_val = new_val(ns)
+        end
+        data[ident] = new_val
+        lovecat.data_renew()
+    end
+    return data[ident]
+end
+
+function lovecat.data_client_set(ns, ident, new_val)
+end
+
+function lovecat.data_client_view(ns)
+end
+
+function lovecat.data_load()
+    local ok, res = pcall(loadfile, lovecat.save_file)
+    if not ok or res == nil then
+        lovecat.log('Warning: failed to load saved file "' .. lovecat.save_file .. '"')
+        lovecat.data = {}
+    else
+        lovecat.data = res
+    end
+end
+
+function lovecat.data_save()
+    local save_tmp = lovecat.save_file .. '.tmp'
+    local out = io.output(save_tmp)
+
+    out:write('local lovecat = {}\n')
+
+    local function write_namespaces(prefix, data)
+        out:write(prefix .. ' = {_CONF_={}}\n')
+        for _,k in ipairs(lovecat.table_sorted_keys(data)) do
+            if k ~= '_CONF_' and not lovecat.namespace_isleaf(k) then
+                write_namespaces(prefix..'.'..k, data[k])
+            end
+        end
+    end
+    for _,k in ipairs(lovecat.roots) do
+        write_namespaces('lovecat.'..k, lovecat.data[k])
+    end
+    out:write("\n\n")
+
+    local function write_data(prefix, data, ns)
+        for _,k in ipairs(lovecat.table_sorted_keys(data)) do
+            if k ~= '_CONF_' then
+                if lovecat.namespace_isleaf(k) then
+                    local res = ns._CONF_.data_to_file(ns, data[k])
+                    local str_k
+                    if type(k) == 'number' then str_k = '['..k..']' else str_k = '.'..k end
+                    out:write(prefix .. str_k .. ' = ' .. res .. '\n')
+                else
+                    write_data(prefix..'.'..k, data[k], ns[k])
+                end
+            end
+        end
+    end
+    for _,k in ipairs(lovecat.roots) do
+        write_data('lovecat.'..k, lovecat.data[k], lovecat[k])
+    end
+
+    out:write('return lovecat\n')
+    out:close()
+
+    os.rename(save_tmp, lovecat.save_file)
+end
+
+function lovecat.data_renew()
+    lovecat.data_version = math.random(123456789)
+end
+
+function lovecat.reload()
+    lovecat.data_load()
+    lovecat.data_renew()
+end
+
+function lovecat.start_server()
     lovecat.server = assert(require('socket').bind(lovecat.host, lovecat.port))
     lovecat.addr, lovecat.port = lovecat.server:getsockname()
     lovecat.server:settimeout(0)
-    lovecat.inited = true
+    lovecat.server_started = true
 end
 
 function lovecat.onrequest(req, client)
@@ -98,7 +279,7 @@ function lovecat.onconnect(client)
 end
 
 function lovecat.update(dt)
-    if not lovecat.inited then lovecat.init() end
+    if not lovecat.server_started then lovecat.start_server() end
     while 1 do
         local client = lovecat.server:accept()
         if not client then break end
@@ -144,7 +325,7 @@ function lovecat.map(t, fn)
 end
 
 function lovecat.log(...)
-    local str = "[lovecat] " .. table.concat(lovebird.map({...}, tostring), " ")
+    local str = "[lovecat] " .. table.concat(lovecat.map({...}, tostring), " ")
     print(str)
 end
 
@@ -153,6 +334,66 @@ function lovecat.static_file(filename)
         return io.input(filename):read('*a')
     end
 end
+
+function lovecat.table_copy(tbl)
+    local res = {}
+    for k,v in pairs(tbl) do
+        res[k]=v
+    end
+    return res
+end
+
+function lovecat.table_repeated(num, func_or_const)
+    local res = {}
+    for i=1,num do
+        if type(func_or_const) == 'function' then
+            table.insert(res, func_or_const())
+        else
+            table.insert(res, func_or_const)
+        end
+    end
+    return res
+end
+
+function lovecat.table_sorted_keys(tbl)
+    local res = {}
+    for k,v in tbl do table.insert(res, k) end
+    table.sort(res)
+    return res
+end
+
+function lovecat.value_to_str(val)
+    if type(val) == 'number' then
+        return tostring(val)
+    elseif type(val) == 'string' then
+        return string.format('%q', val)
+    elseif type(val) == 'table' then
+        local is_seq = true
+        for k,v in pairs(val) do
+            if type(k) ~= 'number' then
+                is_seq = false
+                break
+            end
+        end
+        if is_seq then
+            return '{'..table.concat(lovecat.map(val, lovecat.value_to_str), ', ')..'}'
+        else
+            local res = {}
+            table.insert(res, '{')
+            for k,v in pairs(val) do
+                table.insert(res, k..'='..lovecat.value_to_str(v)..',')
+            end
+            table.insert(res, '}')
+            return res
+        end
+    end
+end
+
+lovecat.roots = {}
+lovecat.init_confs()
+
+lovecat.data_load()
+lovecat.data_renew()
 
 lovecat.pages = {}
 lovecat.pages_mime = {}

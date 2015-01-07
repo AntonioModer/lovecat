@@ -17,6 +17,8 @@
     "gulp-livereload": "~3.2.0",
     "vinyl-buffer": "~1.0.0",
     "gulp-uglify": "~1.0.2",
-    "domready": "~1.0.7"
+    "domready": "~1.0.7",
+    "gulp-less": "~2.0.1",
+    "gulp-rename": "~1.2.0"
   }
 }

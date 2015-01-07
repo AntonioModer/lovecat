@@ -7,6 +7,8 @@ livereload = require 'gulp-livereload'
 uglify = require 'gulp-uglify'
 shell = require 'gulp-shell'
 assign = require 'lodash.assign'
+less = require 'gulp-less'
+rename = require 'gulp-rename'
 
 handle_error = (err) ->
     console.log err.toString()
@@ -27,9 +29,19 @@ bundle_js_watch = (src, dst_path, dst_file, config_func) ->
     b.on 'update', rebundle
     rebundle()
 
+bundle_css_watch = (watch_glob, src, dst_path, dst_file) ->
+    rebundle = ->
+        gulp.src(src)
+            .pipe(less(paths: ['./node_modules']))
+            .on('error', handle_error)
+            .pipe(rename(dst_file))
+            .pipe(gulp.dest(dst_path))
+            .pipe(livereload())
+    gulp.watch watch_glob, ->
+        do rebundle
+    do rebundle
+
 gulp.task 'default', ->
     livereload.listen()
     bundle_js_watch  './cjsx/main.cjsx', 'cjsx', 'generated.js'
-    gulp.watch('css/*.css').on 'change', (evt) ->
-        return if evt.type is 'deleted'
-        livereload.changed(evt.path)
+    bundle_css_watch './less/*.less', 'less/main.less', 'less', 'generated.css'

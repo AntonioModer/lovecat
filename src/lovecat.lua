@@ -480,7 +480,7 @@ lovecat.pages_mime = {}
 
 lovecat.pages_mime['_lovecat_/status'] = 'application/json'
 lovecat.pages['_lovecat_/status'] = function (lovecat, req)
-    return '{ "status": ' .. lovecat.data_version .. ' }'
+    return '{ "data_version": ' .. lovecat.data_version .. ' }'
 end
 
 lovecat.pages_mime['_lovecat_/view'] = 'application/json'

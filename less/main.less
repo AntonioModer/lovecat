@@ -1,25 +1,114 @@
+@font-sans: "DejaVu Sans", "Bitstream Vera Sans", Geneva, Verdana, sans-serif;
+@font-mono: "Liberation Mono", "Nimbus Mono L", "FreeMono", "DejaVu Mono", "Bitstream Vera Mono", "Lucida Console", "Andale Mono", "Courier New", monospace;
+
 .slider {
-    height: 100px;
-    margin-top: 10px;
+    height: 22px;
     position: relative;
-    margin-left: 100px;
-    margin-right: 200px;
+
     .base-line {
-        position: relative;
+        position: absolute;
         top: 10px;
         height: 2px;
         width: 100%;
-        background-color: #888;
+        background-color: #bbb;
     }
     .pin {
-        position: relative;
-        top: 1px;
+        position: absolute;
+        top: 3px;
         margin-left: -8px;
-        background-color: #327bda;
         height: 16px;
         width: 16px;
         border-radius: 8px;
         -moz-border-radius: 8px;
         -webkit-border-radius: 8px;
     }
+
 }
+
+.navbar {
+    width: 100%;
+    vertical-align: middle;
+    line-height: 40px;
+    height: 48px;
+    .navitem {
+        float: left;
+        padding: 5px 8px 3px 8px;
+        height: 40px;
+        font-size: 16px;
+        font-family: @font-sans;
+    }
+    .brand {
+        float: left;
+        padding: 5px 28px 3px 20px;
+        font-size: 26px;
+        height: 40px;
+        font-family: @font-sans;
+    }
+}
+
+.group-name {
+    font-family: @font-mono;
+    margin-bottom: 20px;
+    color: #222;
+}
+
+.group-entry {
+    height: 22px;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.group-entry-header {
+    font-family: @font-mono;
+    height: 22px;
+    width: 130px;
+    float: left;
+    line-height: 22px;
+    text-align: right;
+    color: #333;
+}
+
+.group-entry-content {
+    height: 22px;
+    margin-left: 150px;
+}
+
+body {
+    margin: 0 0 0 0;
+
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.page-content {
+    margin: 30px 30px 30px 30px;
+}
+
+.generate-theme(@theme, @main_color) {
+    .theme-@{theme} {
+        .navbar {
+            background-color: #f3f3f3;
+            .brand {
+                color: saturate(@main_color, 20%);
+            }
+            .navitem {
+                color: @main_color;
+                &.active {
+                    color: spin(@main_color, 60);
+                    background-color: #e0e0e0;
+                }
+                &:hover {
+                    color: spin(@main_color, 60);
+                    cursor: pointer;
+                }
+            }
+        }
+
+        .pin {
+            background-color: @main_color;
+        }
+    }
+}
+
+.generate-theme(number, hsv(214, 72%, 92%));

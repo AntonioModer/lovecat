@@ -1,14 +1,22 @@
 function love.update(dt)
-    --while true do
-        lovecat.update(dt)
-    --    love.timer.sleep(0.1)
-    --end
+--[[
+    for i=1,10 do
+        lovecat.update(0.1)
+        love.timer.sleep(0.1)
+    end
+--]]
+    lovecat.update(dt)
 end
 
 function love.draw()
     local x = lovecat.number.ClassA.ClassB.x * 600
     local y = lovecat.number.ClassA.ClassB.y * 800
     local size = 20 + lovecat.number.ClassA.ClassB.size * 100
+    love.graphics.circle('line', x, y, size, 30)
+
+    local x = lovecat.number.ClassA.ClassC.x * 600
+    local y = lovecat.number.ClassA.ClassC.y * 800
+    local size = 20 + lovecat.number.ClassA.ClassC.size * 100
     love.graphics.circle('line', x, y, size, 30)
 end
 

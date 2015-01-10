@@ -1,5 +1,6 @@
 React = require('react')
 utils = require('./utils')
+_ = require('lodash')
 
 Slider = React.createClass
     check_update: (evt) ->
@@ -27,6 +28,7 @@ Slider = React.createClass
         document.addEventListener('touchmove', @global_ontouchmove)
         document.addEventListener('touchend', @global_ontouchend)
         @check_update evt.touches[0]
+        evt.preventDefault()
 
     global_ontouchmove: (evt) ->
         @check_update evt.touches[0]
@@ -42,5 +44,29 @@ Slider = React.createClass
             <div className='pin' style={left: @props.val*100+'%'}/>
         </div>
 
+Scope = React.createClass
+    render: ->
+        scope = @props.scope
+        <div className='scope'>
+        {
+            scope.map (X, K) ->
+                <span key={K}>
+                    {
+                        if K isnt 0
+                            if _.isNumber(X)
+                                <span className='spliter'>&nbsp;</span>
+                            else
+                                <span className='spliter'>&nbsp;.&nbsp;</span>
+                    }
+                    <span key={K}><a href={utils.scope_to_url(scope[0..K])}>
+                    {
+                        if _.isNumber(X) then '['+X+']' else X
+                    }
+                    </a></span>
+                </span>
+        }
+        </div>
+
 module.exports =
     Slider: Slider
+    Scope: Scope

@@ -2,19 +2,19 @@
 @font-mono: "Liberation Mono", "Nimbus Mono L", "FreeMono", "DejaVu Mono", "Bitstream Vera Mono", "Lucida Console", "Andale Mono", "Courier New", monospace;
 
 .slider {
-    height: 22px;
+    height: 26px;
     position: relative;
 
     .base-line {
         position: absolute;
-        top: 10px;
+        top: 12px;
         height: 2px;
         width: 100%;
         background-color: #bbb;
     }
     .pin {
         position: absolute;
-        top: 3px;
+        top: 5px;
         margin-left: -8px;
         height: 16px;
         width: 16px;
@@ -32,10 +32,17 @@
     height: 48px;
     .navitem {
         float: left;
-        padding: 5px 8px 3px 8px;
-        height: 40px;
-        font-size: 16px;
-        font-family: @font-sans;
+        height: 48px;
+
+        a {
+            font-size: 16px;
+            font-family: @font-sans;
+        }
+
+        .navitem-text {
+            display: inline-block;
+            padding: 4px 8px 4px 8px;
+        }
     }
     .brand {
         float: left;
@@ -46,31 +53,90 @@
     }
 }
 
+.page-header {
+    font-size: 24px;
+    margin-bottom: 50px;
+    a {
+        color: #333;
+    }
+
+    .page-filter {
+        float: right;
+        input {
+            height: 24px;
+            font-size: 17px;
+            padding-left: 7px;
+            padding-right: 7px;
+            font-family: @font-mono;
+            border: solid 1px #888;
+            border-radius: 7px;
+
+            &:focus {
+                outline: 0;
+            }
+        }
+    }
+
+    .page-title {
+        float: left;
+    }
+}
+
 .group-name {
-    font-family: @font-mono;
-    margin-bottom: 20px;
     color: #222;
+    font-size: 16px;
+    margin-top: 40px;
+
+    .bar {
+        display: inline-block;
+        width: 4px;
+        margin-right: 10px;
+    }
+
+    .group-scope {
+        display: inline-block;
+    }
+
+    a {
+        color: #444;
+    }
 }
 
 .group-entry {
-    height: 22px;
+    height: 26px;
     width: 100%;
     margin-top: 15px;
 }
 
 .group-entry-header {
     font-family: @font-mono;
-    height: 22px;
+    height: 26px;
     width: 130px;
     float: left;
-    line-height: 22px;
+    line-height: 26px;
     text-align: right;
+    font-size: 12px;
     color: #333;
 }
 
 .group-entry-content {
     height: 22px;
     margin-left: 150px;
+}
+
+.scope {
+    font-family: @font-mono;
+    .spliter {
+        width: 10px;
+        font-family: @font-sans;
+        color: #777;
+    }
+}
+
+.no-results, .disconnected {
+    font-family: @font-sans;
+    font-size: 20px;
+    color: #555;
 }
 
 body {
@@ -93,14 +159,20 @@ body {
                 color: saturate(@main_color, 20%);
             }
             .navitem {
-                color: @main_color;
+                .navitem-text{
+                    color: @main_color;
+                }
                 &.active {
-                    color: spin(@main_color, 60);
+                    .navitem-text{
+                        color: spin(@main_color, 60);
+                    }
                     background-color: #e0e0e0;
                 }
                 &:hover {
-                    color: spin(@main_color, 60);
-                    cursor: pointer;
+                    .navitem-text{
+                        color: spin(@main_color, 60);
+                    }
+                    // cursor: pointer;
                 }
             }
         }
@@ -108,7 +180,25 @@ body {
         .pin {
             background-color: @main_color;
         }
+
+        a {
+            text-decoration: none;
+            &:hover {
+                color: @main_color;
+                text-decoration: underline;
+            }
+        }
+
+        .bar {
+            background-color: @main_color;
+        }
+
+        input:focus {
+            border: solid 1px @main_color;
+            box-shadow: 0 0 7px lighten(@main_color, 30%);
+        }
     }
 }
 
-.generate-theme(number, hsv(214, 72%, 92%));
+.generate-theme(active, hsv(214, 72%, 92%));
+.generate-theme(number, hsv(120, 58%, 70%));

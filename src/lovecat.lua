@@ -163,11 +163,9 @@ function lovecat.data_app_get(ns, ident)
 end
 
 function lovecat.data_client_view(ns, ident)
-    lovecat.log(ns._CONF_.strname, ident)
     local res = {}
 
     local function enum_data(data, ns)
-        lovecat.log(ns._CONF_.strname)
         if data == nil then return end
         for k,v in pairs(data) do
             if k ~= '_CONF_' then
@@ -465,7 +463,6 @@ function lovecat.param_name_to_json(ns, ident)
         res = res .. ', ' .. string.format('%q', ident)
     end
     res = '[' .. res .. ']'
-    lovecat.log(res)
     return res
 end
 

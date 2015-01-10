@@ -11,17 +11,21 @@ Test = React.createClass
         </div>
 
 NavBar = React.createClass
-    scope_entry: ->
-        if not @props.scope?
-            'active'
-        else
-            @props.scope[0]
-
     entry: (x) ->
+        kind = @props.activeKind
         cx = 'navitem'
-        if x is @scope_entry()
-            cx += ' active'
-        <div className={cx}>{x}</div>
+        cx += ' active' if x is kind
+        if x is 'active'
+            href = '/'
+        else
+            href = '/' + x
+        <div className={cx}>
+            <a href={href}>
+                <span className='navitem-text'>
+                {x}
+                </span>
+            </a>
+        </div>
 
     render: ->
         <div className='navbar'>
@@ -86,7 +90,7 @@ DataPage = React.createClass
 
     render: ->
         <div>
-            <NavBar scope={@props.scope}/>
+            <NavBar activeKind={@props.kind}/>
             <div className='page-content'>
             {
                 if not @state.connected
@@ -94,21 +98,21 @@ DataPage = React.createClass
                 else
                     switch @props.scope[0]
                         when 'number'
-                            <NumberPage data={@state.data} onchange={@onchange}/>
+                            <NumberPage data={@state.data} scope={@props.scope} onchange={@onchange}/>
             }
             </div>
         </div>
 
 TopPage = React.createClass
-    scope_entry: ->
-        if not @props.scope?
+    page_kind: ->
+        res = if not @props.scope[0]?
             'active'
         else
             @props.scope[0]
 
     render: ->
-        <div className={'theme-'+@scope_entry()}>
-            <DataPage scope={@props.scope}/>
+        <div className={'theme-'+@page_kind()}>
+            <DataPage scope={@props.scope} kind={@page_kind()}/>
         </div>
 
 ListSlider = React.createClass
@@ -130,5 +134,11 @@ ListSlider = React.createClass
         </div>
 
 domready ->
+    # redirect pages like '/lovecat.number.xx.xxx' to '/number.xx.xxx'
+    url = document.location.pathname
+    x = url.match(/^\/lovecat\.(.*)$/)
+    if x then document.location.pathname = x[1]
+
+    scope = utils.url_to_scope(document.location.pathname)
     React.initializeTouchEvents(true)
-    React.render(<TopPage scope={['number']}/>, document.getElementById('page'))
+    React.render(<TopPage scope={scope}/>, document.getElementById('page'))

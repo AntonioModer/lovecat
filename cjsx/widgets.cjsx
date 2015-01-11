@@ -2,6 +2,34 @@ React = require('react')
 utils = require('./utils')
 _ = require('lodash')
 
+NavBar = React.createClass
+    entry: (x) ->
+        kind = @props.activeKind
+        cx = 'navitem'
+        cx += ' active' if x is kind
+        if x is 'active'
+            href = '/'
+        else
+            href = '/' + x
+        <div className={cx}>
+            <a href={href}>
+                <span className='navitem-text'>
+                {x}
+                </span>
+            </a>
+        </div>
+
+    render: ->
+        <div className='navbar'>
+            <div className='brand'>lovecat</div>&nbsp;
+
+            { @entry('active') }
+            { @entry('number') }
+            { @entry('point') }
+            { @entry('color') }
+            { @entry('grid') }
+        </div>
+
 Slider = React.createClass
     check_update: (evt) ->
         div = @refs.slider.getDOMNode()
@@ -64,9 +92,12 @@ Scope = React.createClass
                     }
                     </a></span>
                 </span>
+            # the span below is needed to get rid of weird subtle height inconsistency
         }
+            <span className='spliter'></span>
         </div>
 
 module.exports =
+    NavBar: NavBar
     Slider: Slider
     Scope: Scope

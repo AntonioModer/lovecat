@@ -20,6 +20,9 @@ fetch_status = (onsuccess, onfail) ->
 fetch_view = (scope, onsuccess, onfail) ->
     fetch_url '/_lovecat_/view', 'scope='+encodeURI(scope_to_lua(scope)), onsuccess, onfail
 
+fetch_active = (onsuccess, onfail) ->
+    fetch_url '/_lovecat_/active', null, onsuccess, onfail
+
 send_update = (scope, new_val, onsuccess, onfail) ->
     fetch_url '/_lovecat_/update',
         'scope='+encodeURI(scope_to_lua(scope)) +
@@ -83,6 +86,7 @@ format_lua_value = (kind, v) ->
 module.exports =
     fetch_status: fetch_status
     fetch_view: fetch_view
+    fetch_active: fetch_active
     send_update: send_update
     ele_left: ele_left
     scope_to_url: scope_to_url

@@ -3,34 +3,8 @@ domready = require('domready')
 utils = require('./utils')
 _ = require('lodash')
 NumberPage = require('./number')
-
-NavBar = React.createClass
-    entry: (x) ->
-        kind = @props.activeKind
-        cx = 'navitem'
-        cx += ' active' if x is kind
-        if x is 'active'
-            href = '/'
-        else
-            href = '/' + x
-        <div className={cx}>
-            <a href={href}>
-                <span className='navitem-text'>
-                {x}
-                </span>
-            </a>
-        </div>
-
-    render: ->
-        <div className='navbar'>
-            <div className='brand'>lovecat</div>&nbsp;
-
-            { @entry('active') }
-            { @entry('number') }
-            { @entry('point') }
-            { @entry('color') }
-            { @entry('grid') }
-        </div>
+ActivePage = require('./active')
+widgets = require './widgets'
 
 DataPage = React.createClass
     getInitialState: ->
@@ -110,7 +84,7 @@ DataPage = React.createClass
 
     render: ->
         <div>
-            <NavBar activeKind={@props.kind}/>
+            <widgets.NavBar activeKind={@props.kind}/>
             <div className='page-content'>
             {
                 if not @state.connected
@@ -132,7 +106,12 @@ TopPage = React.createClass
 
     render: ->
         <div className={'theme-'+@page_kind()}>
-            <DataPage scope={@props.scope} kind={@page_kind()}/>
+        {
+            if @page_kind() is 'active'
+                <ActivePage/>
+            else
+                <DataPage scope={@props.scope} kind={@page_kind()}/>
+        }
         </div>
 
 domready ->

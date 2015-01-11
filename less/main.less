@@ -56,6 +56,8 @@
 .page-header {
     font-size: 24px;
     margin-bottom: 50px;
+    color: #333;
+    font-family: @font-sans;
     a {
         color: #333;
     }
@@ -124,6 +126,31 @@
     margin-left: 150px;
 }
 
+.active-entry {
+    a {
+        color: #333;
+    }
+    .entry-text {
+        margin-left: 17px;
+    }
+    margin-top: 7px;
+    height: 20px;
+    position: relative;
+    .ball {
+        position: absolute;
+        top: 8px;
+        left: 0px;
+    }
+}
+
+.ball {
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    width: 6px;
+    height: 6px;
+}
+
 .scope {
     font-family: @font-mono;
     .spliter {
@@ -190,6 +217,10 @@ body {
         }
 
         .bar {
+            background-color: @main_color;
+        }
+
+        .ball {
             background-color: @main_color;
         }
 

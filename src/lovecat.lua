@@ -256,7 +256,7 @@ function lovecat.data_actual_save()
     out:close()
 
     os.rename(save_tmp, lovecat.save_file)
-    lovecat.log('saved to "' .. lovecat.save_file .. '"!')
+    lovecat.log('saved to "' .. lovecat.save_file .. '"')
 end
 
 -- Will actually write to disk after 1 second
@@ -627,7 +627,8 @@ function lovecat.value_to_str(val)
     end
 end
 
-function lovecat.param_name_to_json(ns, ident)
+-- `ident` may be `nil`
+function lovecat.ns_to_json(ns, ident)
     local res = lovecat.map(ns._CONF_.fullname, function (x) return string.format('%q', x) end)
     res = table.concat(res, ', ')
     if type(ident) == 'number' then
@@ -680,7 +681,7 @@ lovecat.pages['_lovecat_/view'] = function (lovecat, req)
     local json = {}
     for _,x in ipairs(results) do
         table.insert(json,
-            '{ "k": ' .. lovecat.param_name_to_json(x[1], x[2]) .. ', ' ..
+            '{ "k": ' .. lovecat.ns_to_json(x[1], x[2]) .. ', ' ..
               '"v": ' .. x[3] .. ' }')
     end
     json = table.concat(json, ', ')
@@ -726,7 +727,13 @@ end
 
 lovecat.pages_mime['_lovecat_/active'] = 'application/json'
 lovecat.pages['_lovecat_/active'] = function (lovecat, req)
-
+    local json = {}
+    for ns,_ in pairs(lovecat.active_expire) do
+        table.insert(json, lovecat.ns_to_json(ns))
+    end
+    json = table.concat(json, ', ')
+    json = '[' .. json .. ']'
+    return json
 end
 
 --==--==--==-- CUT! --==--==--==--

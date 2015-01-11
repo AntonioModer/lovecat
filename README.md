@@ -1,4 +1,4 @@
 lovecat
 =======
 
-Web-based Parameter Tuning for Love2d
+Web-based Parameter Tuning for LÖVE

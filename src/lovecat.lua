@@ -1,6 +1,6 @@
 local lovecat = {
     _VERSION     = 'lovecat v0.0.1',
-    _DESCRIPTION = 'Web-based Parameter Tuning for Love2d',
+    _DESCRIPTION = 'Web-based Parameter Tuning for LÖVE',
     _URL         = '', -- TBD
     _LICENSE     = [[
         MIT LICENSE

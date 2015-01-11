@@ -736,12 +736,7 @@ lovecat.pages['_lovecat_/active'] = function (lovecat, req)
     return json
 end
 
---==--==--==-- CUT! --==--==--==--
-
--- the code below are for development,
--- and will be replaced automatically by a releasing script
-
-lovecat.pages["_default"] = [[
+lovecat.pages['_default'] = [[
     <!DOCTYPE html>
     <html>
     <head>
@@ -752,10 +747,21 @@ lovecat.pages["_default"] = [[
     <body>
         <div id='page'></div>
         <script src="/_lovecat_/app.js"></script>
-        <script>document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
+        ADDITIONAL_SCRIPT
     </body>
     </html>
 ]]
+
+--==--==--==-- CUT! --==--==--==--
+
+-- the code below are for development,
+-- and will be replaced automatically by a releasing script
+
+local additional_script = [[
+    <script>document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
+]]
+
+lovecat.pages["_default"] = lovecat.pages["_default"]:gsub('ADDITIONAL_SCRIPT', additional_script)
 
 lovecat.pages["_lovecat_/app.css"] = lovecat.static_file('../less/generated.css')
 lovecat.pages_mime["_lovecat_/app.css"] = 'text/css'

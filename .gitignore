@@ -2,3 +2,4 @@ node_modules
 cjsx/*.js
 less/*.css
 example/lovecat-saved.txt
+/lovecat.lua

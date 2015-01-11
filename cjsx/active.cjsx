@@ -80,7 +80,7 @@ ActivePage = React.createClass
                 </div>
             {
                 if not @state.connected
-                    <div className='disconnected'>Disconnected.</div>
+                    <div className='disconnected'>disconnected</div>
                 else
                     input = @state.filter
                     active_list = _.filter(@state.active_list, ((v) -> utils.scope_contains input, v))

@@ -33,25 +33,13 @@ NumberPage = React.createClass
     onchange: (val) ->
         @props.onchange String(val) if @props.onchange
 
-    onfilter: (evt) ->
-        @setState filter:evt.target.value
-
     render: ->
-        input = @state.filter
+        input = @props.filter
         data = _.filter(@props.data, ((v) -> utils.scope_contains input, v.k))
         data = _.groupBy data, (x) -> _.initial(x.k)
         groups = _.keys(data).sort()
 
         <div>
-            <div className='page-header'>
-                <div className='page-title'>
-                    <widgets.Scope scope={@props.scope} />
-                </div>
-                <div className='page-filter'>
-                    <input type='text' placeholder='type to filter..' value={@state.filter} onChange={@onfilter}/>
-                </div>
-                &nbsp;
-            </div>
         {
             groups.map (X, K) =>
                 <div key={K}>

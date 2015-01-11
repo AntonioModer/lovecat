@@ -83,6 +83,13 @@ format_lua_value = (kind, v) ->
     switch kind
         when 'number' then String(v)
 
+is_leaf_scope = (scope) ->
+    return false if scope.length <= 1
+    last = scope[scope.length-1]
+    return true if not _.isString(last)
+    return false if 'A' <= last[0] and last[0] <= 'Z'
+    return true
+
 module.exports =
     fetch_status: fetch_status
     fetch_view: fetch_view
@@ -93,4 +100,5 @@ module.exports =
     url_to_scope: url_to_scope
     scope_contains: scope_contains
     format_lua_value: format_lua_value
+    is_leaf_scope: is_leaf_scope
 

@@ -10,6 +10,7 @@ DataPage = React.createClass
     getInitialState: ->
         connected: false
         data: []
+        filter: ''
 
     check_sync: ->
         return if @syncing
@@ -82,17 +83,33 @@ DataPage = React.createClass
     componentWillUnmount: ->
         clearInterval @timer
 
+    onfilter: (evt) ->
+        @setState filter:evt.target.value
+
     render: ->
         <div>
             <widgets.NavBar activeKind={@props.kind}/>
             <div className='page-content'>
+                <div className='page-header'>
+                    <div className='page-title'>
+                        <widgets.Scope scope={@props.scope} />
+                    </div>
+                    {
+                        if not utils.is_leaf_scope(@props.scope)
+                            <div className='page-filter'>
+                                <input type='text' placeholder='type to filter..'
+                                    value={@state.filter} onChange={@onfilter}/>
+                            </div>
+                    }
+                    &nbsp;
+                </div>
             {
                 if not @state.connected
-                    <div className='disconnected'>Disconnected.</div>
+                    <div className='disconnected'>disconnected</div>
                 else
                     switch @props.scope[0]
                         when 'number'
-                            <NumberPage data={@state.data} scope={@props.scope} onchange={@onchange}/>
+                            <NumberPage data={@state.data} scope={@props.scope} filter={@state.filter} onchange={@onchange}/>
             }
             </div>
         </div>

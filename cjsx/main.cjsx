@@ -4,12 +4,6 @@ utils = require('./utils')
 _ = require('lodash')
 NumberPage = require('./number')
 
-Test = React.createClass
-    render: ->
-        <div className='abc'>
-            hello!
-        </div>
-
 NavBar = React.createClass
     entry: (x) ->
         kind = @props.activeKind
@@ -41,49 +35,75 @@ NavBar = React.createClass
 DataPage = React.createClass
     getInitialState: ->
         connected: false
-        data_version: null
         data: []
 
-    onstatus_ok: (res) ->
-        ver = res.data_version
-        if not ver?
-            do onstatus_err
-            return
-        if not @state.connected
-            utils.fetch_view @props.scope, (data) =>
-                @setState
-                    connected: true
-                    data_version: ver
-                    data: data
-            return
-        if ver isnt @state.data_version
-            utils.fetch_view @props.scope, (data) =>
-                @setState
-                    data_version: ver
-                    data: data
+    check_sync: ->
+        return if @syncing
+
+        if not @remote_instance_num?
+            @setState connected: false
             return
 
-    onstatus_err: ->
-        @setState connected:false
+        return if @pending_changes isnt 0
 
-    check_status: ->
-        utils.fetch_status ((x) => @onstatus_ok x), (=> do @onstatus_err)
+        if @instance_num is @remote_instance_num and
+           @data_version >= @remote_data_version
+            if not @state.connected
+                @setState connected: true
+            return
 
-    format_value: (kind, v) ->
-        switch kind
-            when 'number' then String(v)
+        mem_instance_num = @remote_instance_num
+        mem_data_version = @remote_data_version
+
+        console.log 'refetch'
+        @syncing = true
+        utils.fetch_view @props.scope, (data) =>
+            @syncing = false
+            @instance_num = mem_instance_num
+            @data_version = mem_data_version
+            @setState
+                connected: true
+                data: data
+            setTimeout (=> do @check_sync), 0
+
+    fetch_status: ->
+        on_ok = (x) =>
+            @remote_data_version = x.data_version
+            @remote_instance_num = x.instance_num
+            do @check_sync
+        on_fail = =>
+            @remote_data_version = null
+            @remote_instance_num = null
+            do @check_sync
+        utils.fetch_status on_ok, on_fail
 
     onchange: (k, v) ->
-        utils.send_update k, @format_value(k[0], v)
+        @pending_changes += 1
+        on_ok = =>
+            @pending_changes -=1
+            @data_version += 1
+            do @check_sync
+        on_fail = =>
+            @pending_changes -=1
+            do @check_sync
+        utils.send_update k, utils.format_lua_value(k[0], v), on_ok, on_fail
         for x in @state.data
             if _.isEqual(x.k, k)
                 x.v = v
                 break
         do @forceUpdate
 
+    componentWillMount: ->
+        @pending_changes = 0
+        @data_version = 0
+        @instance_num = null
+        @remote_data_version = null
+        @remote_instance_num = null
+        @syncing = false
+
     componentDidMount: ->
-        do @check_status
-        @timer = setInterval (=> do @check_status), 500
+        do @fetch_status
+        @timer = setInterval (=> do @fetch_status), 500
 
     componentWillUnmount: ->
         clearInterval @timer
@@ -113,24 +133,6 @@ TopPage = React.createClass
     render: ->
         <div className={'theme-'+@page_kind()}>
             <DataPage scope={@props.scope} kind={@page_kind()}/>
-        </div>
-
-ListSlider = React.createClass
-    render: ->
-        <div>
-            <Slider val={0.5} onchange={(val) ->
-                console.log(val)
-                utils.send_update ['number', 'ClassA', 'ClassB', 'size'], ''+val}/>
-            <Slider val={0.5} onchange={(val) ->
-                console.log(val)
-                utils.send_update ['number', 'ClassA', 'ClassB', 'x'], ''+val}/>
-            <Slider val={0.5} onchange={(val) ->
-                console.log(val)
-                utils.send_update ['number', 'ClassA', 'ClassB', 'y'], ''+val}/>
-            <Slider val={0}/>
-            <Slider val={0.2}/>
-            <Slider val={0.3}/>
-            <Slider val={1}/>
         </div>
 
 domready ->

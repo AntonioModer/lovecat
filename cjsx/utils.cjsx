@@ -20,10 +20,10 @@ fetch_status = (onsuccess, onfail) ->
 fetch_view = (scope, onsuccess, onfail) ->
     fetch_url '/_lovecat_/view', 'scope='+encodeURI(scope_to_lua(scope)), onsuccess, onfail
 
-send_update = (scope, new_val) ->
+send_update = (scope, new_val, onsuccess, onfail) ->
     fetch_url '/_lovecat_/update',
         'scope='+encodeURI(scope_to_lua(scope)) +
-        '&val='+encodeURI(new_val)
+        '&val='+encodeURI(new_val), onsuccess, onfail
 
 scope_to_lua = (scope) ->
     res = '{'
@@ -76,6 +76,10 @@ ele_left = (ele) ->
         ele = ele.offsetParent
     return ans
 
+format_lua_value = (kind, v) ->
+    switch kind
+        when 'number' then String(v)
+
 module.exports =
     fetch_status: fetch_status
     fetch_view: fetch_view
@@ -84,4 +88,5 @@ module.exports =
     scope_to_url: scope_to_url
     url_to_scope: url_to_scope
     scope_contains: scope_contains
+    format_lua_value: format_lua_value
 

@@ -32,6 +32,8 @@ lovecat.host = "*"
 lovecat.port = 7000
 lovecat.whitelist = { "127.0.0.1", "192.168.*.*" }
 lovecat.save_file = 'lovecat-saved.txt'
+lovecat.active_delay = 60 -- in seconds
+lovecat.save_delay = 1    -- in seconds
 
 function lovecat.init_confs()
     lovecat.number = lovecat.namespace_root({
@@ -95,13 +97,17 @@ lovecat.namespace_meta = {
             if ns._CONF_.data_to_app then
                 data = ns._CONF_.data_to_app(ns, data)
             end
-            lovecat.active_mark(ns)
+            lovecat.active_check(ns)
             return data
         else
             local node = lovecat.namespace_newnode(ns, ident)
             rawset(ns, ident, node)
             return node
         end
+    end,
+
+    __tostring = function (ns)
+        return '['..ns._CONF_.strname..']'
     end
 }
 
@@ -110,6 +116,7 @@ function lovecat.namespace_root(confs)
     ns._CONF_.fullname = { ns._CONF_.name }
     ns._CONF_.strname = ns._CONF_.name
     ns._CONF_.parent = nil
+    ns._CONF_.watchers = {}
     setmetatable(ns, lovecat.namespace_meta)
     table.insert(lovecat.roots, ns._CONF_.name)
     return ns
@@ -119,21 +126,13 @@ function lovecat.namespace_newnode(parent, ident)
     local ns = { _CONF_ = {} }
     ns._CONF_.name = ident
     ns._CONF_.parent = parent
+    ns._CONF_.watchers = {}
     ns._CONF_.fullname = lovecat.table_copy(parent._CONF_.fullname)
     table.insert(ns._CONF_.fullname, ident)
     ns._CONF_.strname = table.concat(lovecat.map(ns._CONF_.fullname, tostring), ".")
     setmetatable(ns._CONF_, { __index = parent._CONF_ })
     setmetatable(ns, lovecat.namespace_meta)
     return ns
-end
-
-function lovecat.active_mark(ns)
-end
-
-function lovecat.active_update(dt)
-end
-
-function lovecat.active_get()
 end
 
 function lovecat.data_scope(ns, may_create)
@@ -157,7 +156,7 @@ function lovecat.data_app_get(ns, ident)
         end
         data[ident] = new_val
         lovecat.data_save()
-        lovecat.data_renew()
+        lovecat.data_inc_version()
     end
     return data[ident]
 end
@@ -197,6 +196,8 @@ function lovecat.data_client_set(ns, ident, new_val)
     if data[ident] == nil then return false end
     data[ident] = new_val
     lovecat.data_save()
+    lovecat.data_inc_version()
+    lovecat.watch_notify(ns, ident)
     return true
 end
 
@@ -209,6 +210,7 @@ function lovecat.data_load()
     else
         lovecat.data = res
     end
+    lovecat.data_version = 0
 end
 
 function lovecat.data_actual_save()
@@ -254,21 +256,192 @@ function lovecat.data_actual_save()
     out:close()
 
     os.rename(save_tmp, lovecat.save_file)
-    lovecat.log('save!')
+    lovecat.log('saved to "' .. lovecat.save_file .. '"!')
 end
 
 -- Will actually write to disk after 1 second
 function lovecat.data_save()
-    lovecat.save_timer = 1
+    lovecat.save_timer = lovecat.clock + lovecat.save_delay
 end
 
-function lovecat.data_renew()
-    lovecat.data_version = math.random(123456789)
+function lovecat.data_save_timer_reset()
+    if lovecat.save_timer then
+        lvoecat.data_actual_save()
+        lovecat.save_timer = nil
+    end
+end
+
+function lovecat.data_save_timer_check()
+    if lovecat.save_timer and lovecat.save_timer < lovecat.clock then
+        lovecat.data_actual_save()
+        lovecat.save_timer = nil
+    end
+end
+
+function lovecat.data_inc_version()
+    lovecat.data_version = lovecat.data_version + 1
+end
+
+
+function lovecat.active_reset()
+    lovecat.active_expire = {}
+    lovecat.active_heap = {}
+    lovecat.active_heap_pos = {}
+    lovecat.active_version = 0
+end
+
+function lovecat.active_fixheap(x)
+    local H = lovecat.active_heap
+    local P = lovecat.active_heap_pos
+    local K = lovecat.active_expire
+
+    local function swap(i, j)
+        P[H[i]], P[H[j]] = j, i
+        H[i], H[j] = H[j], H[i]
+    end
+
+    local function move_up(x)
+        while x > 1 do
+            local p = math.floor(x/2)
+            if K[H[x]] < K[H[p]] then
+                swap(x, p)
+            end
+            x = p
+        end
+    end
+
+    local function move_down(x)
+        while true do
+            local m = x
+            local l, r = x+x, x+x+1
+            if H[l] ~= nil and K[H[l]] < K[H[m]] then m = l end
+            if H[r] ~= nil and K[H[r]] < K[H[m]] then m = r end
+            if m == x then break end
+            swap(m, x)
+            x = m
+        end
+    end
+
+    move_up(x)
+    move_down(x)
+end
+
+function lovecat.active_set_expire(ns, expire)
+    if expire == nil then
+        expire = lovecat.clock + lovecat.active_delay
+    end
+
+    lovecat.active_expire[ns] = expire
+
+    if lovecat.active_heap_pos[ns] then
+        lovecat.active_fixheap(lovecat.active_heap_pos[ns])
+    else
+        local p = #lovecat.active_heap+1
+        lovecat.active_heap_pos[ns] = p
+        lovecat.active_heap[p] = ns
+        lovecat.active_fixheap(p)
+        lovecat.active_inc_version()
+    end
+end
+
+function lovecat.active_update()
+    while #lovecat.active_heap>0 do
+        local ns = lovecat.active_heap[1]
+        local t = lovecat.active_expire[ns]
+        if t > lovecat.clock then break end
+
+        local sz = #lovecat.active_heap
+        local last_ns = lovecat.active_heap[sz]
+        lovecat.active_heap[1] = last_ns
+        lovecat.active_heap[sz] = nil
+        lovecat.active_heap_pos[last_ns] = 1
+        lovecat.active_heap_pos[ns] = nil
+        lovecat.active_expire[ns] = nil
+
+        if sz > 1 then lovecat.active_fixheap(1) end
+        lovecat.active_inc_version()
+    end
+end
+
+function lovecat.active_inc_version()
+    lovecat.active_version = lovecat.active_version + 1
+end
+
+function lovecat.active_check(ns)
+    local inf = 1000000000
+    if #ns._CONF_.watchers > 0 then
+        lovecat.active_set_expire(ns, inf)
+    else
+        lovecat.active_set_expire(ns)
+    end
+end
+
+function lovecat.watch_add(ns, func)
+    assert(func ~= nil)
+    for _, x in ipairs(ns._CONF_.watchers) do
+        if x == func then return end
+    end
+    table.insert(ns._CONF_.watchers, func)
+    lovecat.active_check(ns)
+end
+
+-- if `func==nil`, then remove all watchers associated at `ns`
+function lovecat.watch_remove(ns, func, in_reset)
+    if func == nil then
+        for k, x in pairs(ns._CONF_.watchers) do
+            ns._CONF_.watchers[k] = nil
+        end
+        lovecat.log(ns)
+        if not in_reset then lovecat.active_check(ns) end
+    else
+        for k, x in ipairs(ns._CONF_.watchers) do
+            if x == func then
+                table.remove(ns._CONF_.watchers, k)
+                if not in_reset then lovecat.active_check(ns) end
+                return
+            end
+        end
+    end
+end
+
+function lovecat.watch_reset()
+    local function reset_ns(ns)
+        lovecat.watch_remove(ns, nil, true)
+        for k,v in pairs(ns) do
+            if k ~= '_CONF_' then
+                assert(not lovecat.namespace_isleaf(k))
+                reset_ns(v)
+            end
+        end
+    end
+    for k, root in ipairs(lovecat.roots) do
+        reset_ns(lovecat[root])
+    end
+end
+
+function lovecat.watch_notify(ns, ident)
+    local function _notify(x)
+        for _, x in ipairs(x._CONF_.watchers) do
+            local ok, err = pcall(x, ns, ident)
+            if not ok then
+                lovecat.log('Error while notifying watcher:', err)
+            end
+        end
+    end
+    x = ns
+    while x ~= nil do
+        _notify(x)
+        x = x._CONF_.parent
+    end
 end
 
 function lovecat.reload()
+    lovecat.clock = 0
+    lovecat.instance_renew()
+    lovecat.active_reset()
     lovecat.data_load()
-    lovecat.data_renew()
+    lovecat.watch_reset()
+    lovecat.data_save_timer_reset()
 end
 
 function lovecat.start_server()
@@ -338,13 +511,9 @@ end
 
 function lovecat.update(dt)
     if not lovecat.server_started then lovecat.start_server() end
-    if lovecat.save_timer then
-        lovecat.save_timer = lovecat.save_timer - dt
-        if lovecat.save_timer < 0 then
-            lovecat.data_actual_save()
-            lovecat.save_timer = nil
-        end
-    end
+    lovecat.clock = lovecat.clock + dt
+    lovecat.data_save_timer_check()
+    lovecat.active_update()
     while 1 do
         local client = lovecat.server:accept()
         if not client then break end
@@ -357,6 +526,10 @@ function lovecat.update(dt)
             client:close()
         end
     end
+end
+
+function lovecat.instance_renew()
+    lovecat.instance_num = os.time()
 end
 
 function lovecat.checkwhitelist(addr)
@@ -469,15 +642,16 @@ end
 lovecat.roots = {}
 lovecat.init_confs()
 
-lovecat.data_load()
-lovecat.data_renew()
+lovecat.reload()
 
 lovecat.pages = {}
 lovecat.pages_mime = {}
 
 lovecat.pages_mime['_lovecat_/status'] = 'application/json'
 lovecat.pages['_lovecat_/status'] = function (lovecat, req)
-    return '{ "data_version": ' .. lovecat.data_version .. ' }'
+    return '{ "instance_num": ' .. lovecat.instance_num ..
+           ', "data_version": ' .. lovecat.data_version ..
+           ', "active_version": ' .. lovecat.active_version .. ' }'
 end
 
 lovecat.pages_mime['_lovecat_/view'] = 'application/json'

@@ -24,7 +24,7 @@ local config = {
 
 	enable_watcher = true,
 	watcher_interval = 0.1,
-	watcher_onchanged = "reload(); lovecat.reload()",
+	watcher_onchanged = "lovecat.reload(); reload()",
 	watcher_patterns = {"lua$"},
 	enable_physics = false,
 	physics_show = false,

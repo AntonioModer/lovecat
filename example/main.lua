@@ -1,3 +1,13 @@
+function love.load()
+    lovecat.watch_add(lovecat.number, function (ns, ident)
+        print(ns, ident, 'is changed!')
+    end)
+
+    lovecat.watch_add(lovecat.number.ClassA.ClassB, function (ns, ident)
+        print(ns, ident, 'is changed! -- wang')
+    end)
+end
+
 function love.update(dt)
 --[[
     for i=1,10 do

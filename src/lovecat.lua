@@ -119,6 +119,7 @@ function lovecat.namespace_root(confs)
     ns._CONF_.watchers = {}
     setmetatable(ns, lovecat.namespace_meta)
     table.insert(lovecat.roots, ns._CONF_.name)
+    lovecat.roots_hash[ns._CONF_.name] = true
     return ns
 end
 
@@ -217,11 +218,11 @@ function lovecat.data_actual_save()
     local save_tmp = lovecat.save_file .. '.tmp'
     local out = io.output(save_tmp)
 
-    out:write('local lovecat = {}\n')
+    out:write('local lovecat = {}\n\n\n-- namespaces:\n')
 
     local function write_namespaces(prefix, data)
         if data == nil then return end
-        out:write(prefix .. ' = {_CONF_={}}\n')
+        out:write(prefix .. ' = {}\n')
         for _,k in ipairs(lovecat.table_sorted_keys(data)) do
             if k ~= '_CONF_' and not lovecat.namespace_isleaf(k) then
                 write_namespaces(prefix..'.'..k, data[k])
@@ -231,7 +232,7 @@ function lovecat.data_actual_save()
     for _,k in ipairs(lovecat.roots) do
         write_namespaces('lovecat.'..k, lovecat.data[k])
     end
-    out:write("\n\n")
+    out:write("\n\n-- saved values:\n")
 
     local function write_data(prefix, data, ns)
         if data == nil then return end
@@ -252,7 +253,37 @@ function lovecat.data_actual_save()
         write_data('lovecat.'..k, lovecat.data[k], lovecat[k])
     end
 
-    out:write('\n\nreturn lovecat\n')
+    out:write('\n\n')
+
+    out:write [[
+-- The following code tries to make the saved file a drop-in
+-- replacement for lovecat.lua
+local function make_printable(prefix, node)
+    setmetatable(node, {__tostring=function() return prefix end})
+    for ident,v in pairs(node) do
+        if prefix == '' or
+           (type(ident) == 'string' and
+            ('A'):byte() <= ident:byte() and
+            ('Z'):byte() >= ident:byte()) then
+            local new_prefix
+            if prefix == '' then
+                new_prefix = ident
+            else
+                new_prefix = prefix..'.'..ident
+            end
+            make_printable(new_prefix, v)
+        end
+    end
+end
+make_printable('', lovecat)
+
+lovecat.update       = function() end
+lovecat.watch_add    = function() end
+lovecat.watch_remove = function() end
+lovecat.set_default  = function() end
+
+return lovecat
+]]
     out:close()
 
     os.rename(save_tmp, lovecat.save_file)
@@ -648,6 +679,7 @@ function lovecat.ns_to_json(ns, ident)
 end
 
 lovecat.roots = {}
+lovecat.roots_hash = {}
 lovecat.init_confs()
 
 lovecat.reload()
@@ -668,7 +700,7 @@ lovecat.pages['_lovecat_/view'] = function (lovecat, req)
     req_scope = load('return '..req_scope)()
     local results
 
-    if lovecat.data[req_scope[1]] == nil then return '[]' end
+    if not lovecat.roots_hash[req_scope[1]] then return '[]' end
     local ns = lovecat[req_scope[1]]
     if #req_scope>1 then
         for i=2,#req_scope-1 do
@@ -704,7 +736,7 @@ lovecat.pages['_lovecat_/update'] = function (lovecat, req)
     req_scope = load('return '..req_scope)()
     req_val = load('return '..req_val)()
 
-    if lovecat.data[req_scope[1]] == nil then
+    if not lovecat.roots_hash[req_scope[1]] then
         lovecat.log('invalid client update')
         return
     end

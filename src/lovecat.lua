@@ -266,7 +266,7 @@ end
 
 function lovecat.data_save_timer_reset()
     if lovecat.save_timer then
-        lvoecat.data_actual_save()
+        lovecat.data_actual_save()
         lovecat.save_timer = nil
     end
 end
@@ -596,7 +596,15 @@ end
 function lovecat.table_sorted_keys(tbl)
     local res = {}
     for k,v in pairs(tbl) do table.insert(res, k) end
-    table.sort(res)
+    table.sort(res, function(x, y)
+        if type(x) == 'number' and type(y) == 'number' then
+            return x < y
+        elseif type(x) == 'string' and type(y) == 'string' then
+            return x < y
+        else
+            return type(x) > type(y)
+        end
+    end)
     return res
 end
 

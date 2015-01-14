@@ -535,7 +535,7 @@ mods.watcher = function() return {
 			self.doupdate = self.doupdate - dt
 			if self.doupdate < 0 then
 				if config.watcher_onchanged then
-					print(cupid_commands:command(config.watcher_onchanged))
+					cupid_commands:command(config.watcher_onchanged)
 				end
 				self.doupdate = nil
 			end

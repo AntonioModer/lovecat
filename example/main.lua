@@ -3,9 +3,11 @@ function love.load()
         print(ns, ident, 'is changed!')
     end)
 
+--[[
     lovecat.watch_add(lovecat.number.ClassA.ClassB, function (ns, ident)
         print(ns, ident, 'is changed! -- wang')
     end)
+]]
 
     require 'catmull-rom'
 end
@@ -28,13 +30,17 @@ end
 function curve(num, pnt_func)
     local all = {}
 
-    for i = 2, num do
-        local x0, y0 = nil, nil
-        if i-2 >= 1 then x0, y0 = pnt_func(i-2) end
-        local x1, y1 = pnt_func(i-1)
+    local function wrap(k)
+        if k < 1 then return num+k end
+        if k > num then return k-num end
+        return k
+    end
+
+    for i = 1, num do
+        local x0, y0 = pnt_func(wrap(i-2))
+        local x1, y1 = pnt_func(wrap(i-1))
         local x2, y2 = pnt_func(i)
-        local x3, y3 = nil, nil
-        if i<num then x3, y3 = pnt_func(i+1) end
+        local x3, y3 = pnt_func(wrap(i+1))
 
         local res = catmull_rom(x0,y0, x1,y1, x2,y2, x3,y3, 1)
         for i = 1,#res-2 do
@@ -54,13 +60,13 @@ function love.draw()
     -- love.graphics.setLineJoin('none')
     love.graphics.setLineJoin('miter')
     love.graphics.setLineWidth(lovecat.number.Test.Curve.line_width * 5 + 0.5)
-    lovecat_curve(20, lovecat.point.Test.Curve, function(x, y)
+    lovecat_curve(10, lovecat.point.Test.CurveC, function(x, y)
         local x = (x+1)/2 * 600
         local y = 600-(y+1)/2 * 600
         return x, y
     end )
 
-    local x, y = unpack(lovecat.point.Test.Class.a)
+    local x, y = unpack(lovecat.point.Test.Miao.miao)
     local x = (x+1)/2 * 600
     local y = 600-(y+1)/2 * 600
     love.graphics.circle('line', x, y, 10, 30)

@@ -107,7 +107,7 @@ lovecat.namespace_meta = {
     end,
 
     __tostring = function (ns)
-        return '['..ns._CONF_.strname..']'
+        return ns._CONF_.strname
     end
 }
 
@@ -391,7 +391,6 @@ function lovecat.watch_remove(ns, func, in_reset)
         for k, x in pairs(ns._CONF_.watchers) do
             ns._CONF_.watchers[k] = nil
         end
-        lovecat.log(ns)
         if not in_reset then lovecat.active_check(ns) end
     else
         for k, x in ipairs(ns._CONF_.watchers) do

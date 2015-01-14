@@ -203,15 +203,21 @@ function lovecat.data_client_set(ns, ident, new_val)
 end
 
 function lovecat.data_load()
+    if not lovecat.file_exists(lovecat.save_file) then
+        lovecat.log('Warning: saved file does not exist; using a new lovecat tree')
+        lovecat.data = {}
+        lovecat.data_version = 0
+        return
+    end
     local ok, res = pcall(loadfile, lovecat.save_file)
     if not ok or res == nil or
         not pcall(function() res = res() end) then
-        lovecat.log('Warning: failed to load saved file "' .. lovecat.save_file .. '"')
-        lovecat.data = {}
+        lovecat.log('Error: failed to load saved file "' .. lovecat.save_file .. '"')
+        assert(false, 'failed to load savefile')
     else
         lovecat.data = res
+        lovecat.data_version = 0
     end
-    lovecat.data_version = 0
 end
 
 function lovecat.data_actual_save()
@@ -595,6 +601,16 @@ end
 function lovecat.log(...)
     local str = "[lovecat] " .. table.concat(lovecat.map({...}, tostring), " ")
     print(str)
+end
+
+function lovecat.file_exists(filename)
+    local f = io.open(filename)
+    if f then
+        io.close(f)
+        return true
+    else
+        return false
+    end
 end
 
 function lovecat.static_file(filename)

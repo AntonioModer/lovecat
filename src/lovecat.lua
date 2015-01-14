@@ -55,7 +55,7 @@ function lovecat.init_confs()
     lovecat.color = lovecat.namespace_root({
         name = 'color',
         default = function ()
-            return { math.random() * 360, 100 }
+            return { math.random() * 360, 100, 100 }
         end,
         data_to_file = function (ns, v) return lovecat.value_to_str(v) end,
         client_to_data = function (ns, v) return v end,
@@ -64,7 +64,7 @@ function lovecat.init_confs()
 
     lovecat.grid = lovecat.namespace_root({
         name = 'grid',
-        default = function ()
+        default = function (ns)
             local r = ns._CONF_.nrow
             local c = ns._CONF_.ncol
             return lovecat.table_repeated(r, function()
@@ -152,7 +152,7 @@ function lovecat.data_app_get(ns, ident)
     if data[ident] == nil then
         local new_val = ns._CONF_.default
         if type(new_val) == 'function' then
-            new_val = new_val(ns)
+            new_val = new_val(ns, ident)
         end
         data[ident] = new_val
         lovecat.data_save()

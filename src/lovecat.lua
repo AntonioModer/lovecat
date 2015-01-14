@@ -238,7 +238,7 @@ function lovecat.data_actual_save()
     for _,k in ipairs(lovecat.roots) do
         write_namespaces('lovecat.'..k, lovecat.data[k])
     end
-    out:write("\n\n-- saved values:\n")
+    out:write("\n\n-- saved parameters:\n")
 
     local function write_data(prefix, data, ns)
         if data == nil then return end

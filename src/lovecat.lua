@@ -59,7 +59,7 @@ function lovecat.init_confs()
         end,
         data_to_file = function (ns, v) return lovecat.value_to_str(v) end,
         client_to_data = function (ns, v) return v end,
-        data_to_client = function (ns, v) return '['..tostring(v[1])..','..tostring(v[2])..']' end,
+        data_to_client = function (ns, v) return '['..tostring(v[1])..','..tostring(v[2])..','..tostring(v[3])..']' end,
     })
 
     lovecat.grid = lovecat.namespace_root({

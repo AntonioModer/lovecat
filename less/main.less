@@ -1,6 +1,14 @@
 @font-sans: "DejaVu Sans", "Bitstream Vera Sans", Geneva, Verdana, sans-serif;
 @font-mono: "Liberation Mono", "Nimbus Mono L", "FreeMono", "DejaVu Mono", "Bitstream Vera Mono", "Lucida Console", "Andale Mono", "Courier New", monospace;
 
+.canvas {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    z-index: -10;
+}
+
 .slider {
     height: 26px;
     position: relative;
@@ -66,7 +74,7 @@
         float: right;
         input {
             height: 24px;
-            font-size: 17px;
+            font-size: 13px;
             padding-left: 7px;
             padding-right: 7px;
             font-family: @font-mono;
@@ -77,10 +85,15 @@
                 outline: 0;
             }
         }
+
+        margin-top: -7px;
     }
 
     .page-title {
         float: left;
+        a {
+            font-family: @font-sans;
+        }
     }
 }
 
@@ -128,7 +141,7 @@
 
 .active-entry {
     a {
-        color: #333;
+        color: #555;
     }
     .entry-text {
         margin-left: 17px;
@@ -233,3 +246,4 @@ body {
 
 .generate-theme(active, hsv(214, 72%, 92%));
 .generate-theme(number, hsv(120, 58%, 70%));
+.generate-theme(point, hsv(333, 60%, 93%));

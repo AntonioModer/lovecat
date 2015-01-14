@@ -741,6 +741,7 @@ lovecat.pages['_default'] = [[
     <html>
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <title>lovecat</title>
         <link href="/_lovecat_/app.css" rel="stylesheet">
     </head>

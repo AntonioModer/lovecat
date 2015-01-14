@@ -4,6 +4,7 @@ utils = require('./utils')
 _ = require('lodash')
 NumberPage = require('./number')
 ActivePage = require('./active')
+PointPage = require('./point')
 widgets = require './widgets'
 
 DataPage = React.createClass
@@ -107,9 +108,17 @@ DataPage = React.createClass
                 if not @state.connected
                     <div className='disconnected'>disconnected</div>
                 else
+                    input = @state.filter
+                    data = _.filter(@state.data, ((v) -> utils.scope_contains input, v.k))
+                    data = _.sortBy(data, 'k')
+
                     switch @props.scope[0]
                         when 'number'
-                            <NumberPage data={@state.data} scope={@props.scope} filter={@state.filter} onchange={@onchange}/>
+                            <NumberPage data={data} scope={@props.scope}
+                                onchange={@onchange}/>
+                        when 'point'
+                            <PointPage data={data} scope={@props.scope}
+                                onchange={@onchange}/>
             }
             </div>
         </div>

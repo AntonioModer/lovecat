@@ -27,17 +27,10 @@ NumberGroup = React.createClass
         </div>
 
 NumberPage = React.createClass
-    getInitialState: ->
-        filter: ''
-
-    onchange: (val) ->
-        @props.onchange String(val) if @props.onchange
-
     render: ->
-        input = @props.filter
-        data = _.filter(@props.data, ((v) -> utils.scope_contains input, v.k))
-        data = _.groupBy data, (x) -> _.initial(x.k)
+        data = _.groupBy @props.data, (x) -> _.initial(x.k)
         groups = _.keys(data).sort()
+        console.log data
 
         <div>
         {

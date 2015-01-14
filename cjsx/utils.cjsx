@@ -44,6 +44,16 @@ scope_to_url = (scope) ->
             res += '.' + x
     encodeURI(res)
 
+subscope_to_text = (scope, subscope) ->
+    subscope = subscope[scope.length...]
+    res = ''
+    for x in subscope[0...]
+        if _.isNumber(x)
+            res += '[' + x + ']'
+        else
+            res += '.' + x
+    return res
+
 scope_contains = (input, scope) ->
     input = input.toLowerCase()
     for word in input.split(/\s+/)
@@ -79,9 +89,17 @@ ele_left = (ele) ->
         ele = ele.offsetParent
     return ans
 
+ele_top = (ele) ->
+    ans = 0
+    while ele?
+        ans += ele.offsetTop
+        ele = ele.offsetParent
+    return ans
+
 format_lua_value = (kind, v) ->
     switch kind
         when 'number' then String(v)
+        when 'point' then '{' + v[0] + ',' + v[1] + '}'
 
 is_leaf_scope = (scope) ->
     return false if scope.length <= 1
@@ -90,15 +108,21 @@ is_leaf_scope = (scope) ->
     return false if 'A' <= last[0] and last[0] <= 'Z'
     return true
 
+is_retina = ->
+    window.devicePixelRatio > 1
+
 module.exports =
     fetch_status: fetch_status
     fetch_view: fetch_view
     fetch_active: fetch_active
     send_update: send_update
     ele_left: ele_left
+    ele_top: ele_top
     scope_to_url: scope_to_url
     url_to_scope: url_to_scope
     scope_contains: scope_contains
     format_lua_value: format_lua_value
     is_leaf_scope: is_leaf_scope
+    subscope_to_text: subscope_to_text
+    is_retina: is_retina
 

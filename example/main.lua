@@ -9,16 +9,18 @@ function love.load()
 end
 
 function love.update(dt)
---[[
-    for i=1,10 do
+    -- for i=1,10 do
         lovecat.update(0.1)
-        love.timer.sleep(0.1)
-    end
---]]
-    lovecat.update(dt)
+        -- love.timer.sleep(0.1)
+    -- end
 end
 
 function love.draw()
+    local x, y = unpack(lovecat.point.Test.Class.a)
+    x = (x+1)/2 * 600
+    y = 600-(y+1)/2 * 600
+    love.graphics.circle('line', x, y, 10, 30)
+
     local x = lovecat.number.ClassA.ClassB.x * 600
     local y = lovecat.number.ClassA.ClassB.y * 800
     local size = 20 + lovecat.number.ClassA.ClassB.size * 100

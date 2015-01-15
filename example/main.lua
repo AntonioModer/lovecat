@@ -13,10 +13,10 @@ function love.load()
 end
 
 function love.update(dt)
-    -- for i=1,10 do
+    for i=1,10 do
         lovecat.update(dt)
-        -- love.timer.sleep(0.1)
-    -- end
+        love.timer.sleep(0.1)
+    end
 end
 
 function vector(ns, cnt)

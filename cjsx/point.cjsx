@@ -30,11 +30,10 @@ PointPage = React.createClass
                 y = T + H * (1-y)/2
                 return [x,y]
             }
-            move_data = { ([x,y], x0,y0, x1,y1, state) ->
+            move_data = { ([x,y], x0,y0, x1,y1, L,T,W,H) ->
                 [dx, dy] = [x1-x0, y1-y0]
-                size = state.table_width
-                dx /= size/2
-                dy /= -size/2
+                dx /= W/2
+                dy /= -W/2
 
                 [x, y] = [x+dx, y+dy]
                 if x < -1 then x = -1

@@ -261,7 +261,8 @@ TablePage = React.createClass
                 [mx, my] = @props.move_data(point.v,
                     @moving_x0, @moving_y0,
                     evt.clientX, evt.clientY,
-                    @state)
+                    @state.table_left, @state.table_top,
+                    @state.table_width, @state.table_height )
                 @props.onchange point.k, [mx, my]
         else
             @update_hover(evt)

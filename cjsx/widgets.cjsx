@@ -97,7 +97,25 @@ Scope = React.createClass
             <span className='spliter'></span>
         </div>
 
+BoxSelecter = React.createClass
+    render: ->
+        cx = 'box-selecter '
+        cx += @props.orientation
+        <div className={cx}>
+        {
+            @props.choices.map (X, K) =>
+                is_active = @props.active is X
+                if is_active then cx = 'active' else cx = ''
+                <div key={K} className={cx}
+                    onClick={=> @props.onchange(X)}
+                    onTouchStart={(evt) => @props.onchange(X); evt.preventDefault()}>
+                {X}
+                </div>
+        }
+        </div>
+
 module.exports =
     NavBar: NavBar
     Slider: Slider
     Scope: Scope
+    BoxSelecter: BoxSelecter

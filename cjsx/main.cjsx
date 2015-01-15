@@ -5,6 +5,7 @@ _ = require('lodash')
 NumberPage = require('./number')
 ActivePage = require('./active')
 PointPage = require('./point')
+ColorPage = require('./color')
 widgets = require './widgets'
 
 DataPage = React.createClass
@@ -118,6 +119,9 @@ DataPage = React.createClass
                                 onchange={@onchange}/>
                         when 'point'
                             <PointPage data={data} scope={@props.scope}
+                                onchange={@onchange}/>
+                        when 'color'
+                            <ColorPage data={data} scope={@props.scope}
                                 onchange={@onchange}/>
             }
             </div>

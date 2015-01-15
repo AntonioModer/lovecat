@@ -33,6 +33,73 @@
 
 }
 
+.box-selecter {
+    @border_color: #ddd;
+    @height: 37px;
+    @corner: 4px;
+
+    cursor: pointer;
+
+    div {
+        border: 1px solid;
+
+        height: @height;
+        width: @height;
+
+        line-height: @height;
+        text-align: center;
+        font-family: @font-sans;
+        font-size: 10pt;
+
+        &.active {
+            // font-weight: bold;
+        }
+    }
+
+    &.vertical {
+        div {
+            border-bottom: none;
+
+            &:first-child {
+                border-top-left-radius: @corner;
+                border-top-right-radius: @corner;
+            }
+
+            &:last-child {
+                border-bottom: 1px solid;
+                border-bottom-left-radius: @corner;
+                border-bottom-right-radius: @corner;
+            }
+        }
+    }
+
+    &.horizontal {
+        div {
+            display: inline-block;
+            border-right: none;
+
+            &:first-child {
+                border-top-left-radius: @corner;
+                border-bottom-left-radius: @corner;
+            }
+
+            &:last-child {
+                border-right: 1px solid;
+                border-top-right-radius: @corner;
+                border-bottom-right-radius: @corner;
+            }
+        }
+    }
+
+}
+
+.color-mode {
+    // float: left;
+    // width: auto;
+}
+
+
+
 .navbar {
     width: 100%;
     vertical-align: middle;
@@ -78,7 +145,7 @@
             padding-left: 7px;
             padding-right: 7px;
             font-family: @font-mono;
-            border: solid 1px #888;
+            border: solid 1px #aaa;
             border-radius: 7px;
 
             &:focus {
@@ -241,9 +308,26 @@ body {
             border: solid 1px @main_color;
             box-shadow: 0 0 7px lighten(@main_color, 30%);
         }
+
+        .box-selecter {
+            div {
+                border-color: #aaa !important;
+                color: #888;
+                // background-color: #fafafa;
+            }
+            .active {
+                color: @main_color;
+                background-color: lighten(@main_color, 33%);
+                // font-weight: bold;
+            }
+            :hover {
+                color: @main_color;
+            }
+        }
     }
 }
 
 .generate-theme(active, hsv(214, 72%, 92%));
 .generate-theme(number, hsv(120, 58%, 70%));
-.generate-theme(point, hsv(333, 60%, 93%));
+.generate-theme(point,  hsv(333, 60%, 93%));
+.generate-theme(color,  hsv(290, 53%, 85%));

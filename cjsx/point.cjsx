@@ -14,6 +14,17 @@ PointPage = React.createClass
         <TablePage
             data = {@props.data}
             onchange = {@props.onchange}
+            table_position = { (retina, W, H) ->
+                if retina
+                    size = Math.min(W*2-120, H*2-360)
+                    return [ Math.floor((W*2-size)/2), 300
+                             size, size ]
+                else
+                    size = Math.min(W-60, H-180)
+                    if size % 2 == 0 then size -= 1
+                    return [ Math.floor((W-size)/2), 150
+                             size, size ]
+            }
             data_to_screen = { ([x,y], L, T, W, H) ->
                 x = L + W * (1+x)/2
                 y = T + H * (1-y)/2

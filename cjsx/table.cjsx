@@ -31,26 +31,19 @@ TablePage = React.createClass
         if is_retina()
             @refs.canvas.getDOMNode().height = view_height * 2
             @refs.canvas.getDOMNode().width = view_width * 2
-
-            size = Math.min(view_width*2-120, view_height*2-360)
-
-            @setState
-                table_left: Math.floor((view_width*2-size)/2)
-                table_top: 300
-                table_width: size
-                table_height: size
         else
             @refs.canvas.getDOMNode().height = view_height
             @refs.canvas.getDOMNode().width = view_width
 
-            size = Math.min(view_width-60, view_height-180)
-            if size % 2 == 0 then size -= 1
+        [L,T,W,H] = @props.table_position(
+            is_retina(),
+            view_width, view_height)
 
-            @setState
-                table_left: Math.floor((view_width-size)/2)
-                table_top: 150
-                table_width: size
-                table_height: size
+        @setState
+            table_left:   L
+            table_top:    T
+            table_width:  W
+            table_height: H
 
     redraw: ->
         canvas = @refs.canvas.getDOMNode()

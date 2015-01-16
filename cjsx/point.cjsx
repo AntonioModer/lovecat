@@ -96,6 +96,10 @@ PointPage = React.createClass
                 else
                     ctx.strokeRect(L+0.5,T+0.5,W,H)
             }
+            bg_need_redraw = { (W,H, canvas) ->
+                return if W is canvas.width and H is canvas.height
+                '2d'
+            }
             draw_bg = { (ctx, retina, L,T,W,H) ->
                 ctx.strokeStyle = '#bbb'
 

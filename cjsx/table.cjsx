@@ -46,11 +46,11 @@ TablePage = React.createClass
             table_height: H
 
     redraw: ->
+        do @update_bg
+
         canvas = @refs.canvas.getDOMNode()
         ctx = canvas.getContext('2d')
         ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-        do @draw_bg
         do @draw_data
         do @draw_select_box
 
@@ -104,18 +104,41 @@ TablePage = React.createClass
                 )
                 ctx.restore()
 
-    draw_bg: ->
-        canvas = @refs.canvas.getDOMNode()
-        ctx = canvas.getContext('2d')
-        ctx.save()
+    update_bg: ->
+        view_width = document.documentElement.clientWidth
+        view_height = document.documentElement.clientHeight
+        canvas = @refs.canvas_bg.getDOMNode()
+        canvas.style.height = view_height + 'px'
 
-        if @props.draw_bg?
-            @props.draw_bg(ctx, is_retina(),
-                @state.table_left, @state.table_top,
-                @state.table_width, @state.table_height,
-                @state)
+        if is_retina()
+            view_width *= 2
+            view_height *= 2
 
-        ctx.restore()
+        return if not @props.bg_need_redraw?
+        will_redraw = @props.bg_need_redraw(view_width, view_height, canvas, @state)
+        return if not will_redraw?
+
+        canvas.height = view_height
+        canvas.width = view_width
+
+        switch will_redraw
+            when '2d'
+                ctx = canvas.getContext('2d')
+                ctx.save()
+                @props.draw_bg(ctx, is_retina(),
+                    @state.table_left, @state.table_top,
+                    @state.table_width, @state.table_height,
+                    @state)
+                ctx.restore()
+
+            when 'webgl'
+                gl = canvas.getContext('webgl') or canvas.getContext('experimental-webgl')
+                gl.viewport(0, 0, canvas.width, canvas.height)
+                gl.clear(gl.COLOR_BUFFER_BIT)
+                @props.draw_bg(gl, is_retina(),
+                    @state.table_left, @state.table_top,
+                    @state.table_width, @state.table_height,
+                    @state)
 
     draw_select_box: ->
         return if not @state.select_box_A?
@@ -295,6 +318,9 @@ TablePage = React.createClass
             evt.preventDefault()
 
     render: ->
-        <canvas className='canvas' ref='canvas'/>
+        <div>
+            <canvas className='canvas bg' ref='canvas_bg'/>
+            <canvas className='canvas' ref='canvas'/>
+        </div>
 
 module.exports = TablePage

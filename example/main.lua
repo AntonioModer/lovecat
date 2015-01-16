@@ -14,7 +14,7 @@ end
 
 function love.update(dt)
     for i=1,10 do
-        lovecat.update(dt)
+        lovecat.update(0.1)
         love.timer.sleep(0.1)
     end
 end

@@ -100,6 +100,7 @@ format_lua_value = (kind, v) ->
     switch kind
         when 'number' then String(v)
         when 'point' then '{' + v[0] + ',' + v[1] + '}'
+        when 'color' then '{' + v[0] + ',' + v[1] + ',' + v[2] + '}'
 
 is_leaf_scope = (scope) ->
     return false if scope.length <= 1

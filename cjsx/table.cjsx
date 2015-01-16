@@ -114,8 +114,12 @@ TablePage = React.createClass
             view_width *= 2
             view_height *= 2
 
+        hover_data = null
+        if @state.hover?
+            hover_data = _.find(@props.data, (d) => _.isEqual(d.k, @state.hover))
+
         return if not @props.bg_need_redraw?
-        will_redraw = @props.bg_need_redraw(view_width, view_height, canvas, @state)
+        will_redraw = @props.bg_need_redraw(view_width, view_height, canvas, hover_data)
         return if not will_redraw?
 
         canvas.height = view_height
@@ -248,8 +252,8 @@ TablePage = React.createClass
             moving = @state.selected if @state.selected?
             @moving_points0 = []
             for k in moving
-                [mx, my] = _.find(@props.data, (x) -> _.isEqual(x.k, k)).v
-                @moving_points0.push({k:k, v:[mx,my]})
+                data = _.find(@props.data, (x) -> _.isEqual(x.k, k)).v
+                @moving_points0.push({k:k, v:data})
 
     onmouseup: (evt, touch) ->
         if @state.select_box_B?
@@ -281,12 +285,12 @@ TablePage = React.createClass
             @setState selected_in_box: selected
         else if @moving_x0?
             for point in @moving_points0
-                [mx, my] = @props.move_data(point.v,
+                new_data = @props.move_data(point.v,
                     @moving_x0, @moving_y0,
                     evt.clientX, evt.clientY,
                     @state.table_left, @state.table_top,
                     @state.table_width, @state.table_height )
-                @props.onchange point.k, [mx, my]
+                @props.onchange point.k, new_data
         else
             @update_hover(evt)
 

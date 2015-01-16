@@ -9,6 +9,7 @@ function love.load()
     end)
 ]]
 
+    require 'color'
     require 'catmull-rom'
 end
 
@@ -57,6 +58,8 @@ function lovecat_curve(num, ns, func)
 end
 
 function love.draw()
+    love.graphics.setColor(HSV(unpack(lovecat.color.Test.Class.lines)))
+
     -- love.graphics.setLineJoin('none')
     love.graphics.setLineJoin('miter')
     love.graphics.setLineWidth(lovecat.number.Test.Curve.line_width * 5 + 0.5)
@@ -66,16 +69,19 @@ function love.draw()
         return x, y
     end )
 
+    love.graphics.setColor(HSV(unpack(lovecat.color.Test.Class.circle)))
     local x, y = unpack(lovecat.point.Test.Miao.miao)
     local x = (x+1)/2 * 600
     local y = 600-(y+1)/2 * 600
     love.graphics.circle('line', x, y, 10, 30)
 
+    love.graphics.setColor(HSV(unpack(lovecat.color.Test.Class.c1)))
     local x = lovecat.number.ClassA.ClassB.x * 600
     local y = lovecat.number.ClassA.ClassB.y * 800
     local size = 20 + lovecat.number.ClassA.ClassB.size * 100
     love.graphics.circle('line', x, y, size, 30)
 
+    love.graphics.setColor(HSV(unpack(lovecat.color.Test.Class.c2)))
     local x = lovecat.number.ClassA.ClassC.x * 600
     local y = lovecat.number.ClassA.ClassC.y * 800
     local size = 20 + lovecat.number.ClassA.ClassC.size * 100

@@ -264,7 +264,8 @@ function lovecat.data_actual_save()
     out:write [[
 -- The following code tries to make the saved file a drop-in
 -- replacement for lovecat.lua
-local function make_printable(prefix, node)
+
+local function make_tostring(prefix, node)
     setmetatable(node, {__tostring=function() return prefix end})
     for ident,v in pairs(node) do
         if prefix == '' or
@@ -277,11 +278,11 @@ local function make_printable(prefix, node)
             else
                 new_prefix = prefix..'.'..ident
             end
-            make_printable(new_prefix, v)
+            make_tostring(new_prefix, v)
         end
     end
 end
-make_printable('', lovecat)
+make_tostring('', lovecat)
 
 lovecat.update       = function() end
 lovecat.watch_add    = function() end

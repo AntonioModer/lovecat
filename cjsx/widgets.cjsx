@@ -3,6 +3,9 @@ utils = require('./utils')
 _ = require('lodash')
 
 NavBar = React.createClass
+    ontouchstart: ->
+        window.location.pathName = href
+
     entry: (x) ->
         kind = @props.activeKind
         cx = 'navitem'
@@ -11,7 +14,7 @@ NavBar = React.createClass
             href = '/'
         else
             href = '/' + x
-        <div className={cx}>
+        <div className={cx} onTouchStart={=> @ontouchstart(href)}>
             <a href={href}>
                 <span className='navitem-text'>
                 {x}

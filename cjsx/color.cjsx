@@ -98,6 +98,32 @@ void main(void) {
 }
 """
 
+shader_sv = """
+precision highp float;
+
+vec3 hsv2rgb(vec3 c) {
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+uniform float fixed_h;
+uniform vec2 lower;
+uniform float size;
+
+void main(void) {
+    vec2 pos = gl_FragCoord.xy;
+    float dx = pos.x - lower.x;
+    float dy = pos.y - lower.y;
+
+    float hue = dx / size;
+    float val = dy / size;
+
+    vec3 rgb = hsv2rgb(vec3(fixed_h,hue,val));
+    gl_FragColor = vec4(rgb, 1);
+}
+"""
+
 
 selecter_orientation = (W, H) ->
     if W+120 < H then 'horizontal' else 'vertical'
@@ -187,8 +213,8 @@ draw_data_point = (ctx, retina, data, x,y, hover, selected) ->
         x2 = Math.round(x)
         y2 = Math.round(y)
         if retina
-            ctx.fillRect(x-30,y-70,60,60)
-            ctx.strokeRect(x-30,y-70,60,60)
+            ctx.fillRect   x2-60,y2-140,120,120
+            ctx.strokeRect x2-60,y2-140,120,120
         else
             ctx.strokeRect x2-30+0.5,y2-90+0.5,60,60
             ctx.fillRect   x2-30+0.5,y2-90+0.5,60,60
@@ -201,20 +227,14 @@ draw_data_label = (ctx, retina, data, x,y, hover, selected) ->
         ctx.font = '9pt ' + mono_font
 
     TW = ctx.measureText(label).width
+    RE = if retina then 2 else 1
 
-    if retina
-        ctx.fillStyle = '#fff'
-        ctx.globalAlpha = 0.8
-        ctx.fillRect x+20, y-2, TW, 18
-        ctx.fillStyle = '#555'
-        ctx.fillText(label, x+20, y-20)
-    else
-        ctx.fillStyle = '#fff'
-        ctx.globalAlpha = 0.3
-        ctx.fillRect x+10, y-22, TW+3, 16
-        ctx.fillStyle = '#333'
-        ctx.globalAlpha = 1
-        ctx.fillText(label, x+10, y-10)
+    ctx.fillStyle = '#fff'
+    ctx.globalAlpha = 0.3
+    ctx.fillRect x+10*RE, y-22*RE, TW+3*RE, 16*RE
+    ctx.fillStyle = '#333'
+    ctx.globalAlpha = 1
+    ctx.fillText(label, x+10*RE, y-10*RE)
 
 draw_select_box = (ctx, retina, L,T,W,H) ->
     ctx.strokeStyle = '#fff'
@@ -321,52 +341,43 @@ SVPage = React.createClass
             onchange = {@props.onchange}
             table_position = { square_table_position }
             data_to_screen = { ([h,s,v], L, T, W, H) ->
-                circle_data_position(h,s, L,T,W,H)
+                x = L+s/100 * W
+                y = T+H - v/100*H
+                return [x,y]
             }
             move_data = { ([h,s,v], x0,y0, x1,y1, L,T,W,H) ->
-                [h,s] = circle_move_data(h,s, x0,y0, x1,y1, L,T,W,H)
+                dx = (x1-x0)/W * 100
+                dy = -(y1-y0)/H * 100
+                s += dx
+                v += dy
+                if s < 0 then s = 0
+                if s > 100 then s = 100
+                if v < 0 then v = 0
+                if v > 100 then v = 100
                 return [h,s,v]
             }
-            select_threshold = { (touch, retina) ->
-                threshold = 5
-                if touch then threshold = 20
-                if retina then threshold *= 2
-                return threshold
+            select_threshold = { select_threshold }
+            draw_data_point = { draw_data_point }
+            draw_data_label = { draw_data_label.bind(@) }
+            draw_select_box = { draw_select_box }
+            bg_need_redraw = { (W,H, canvas, hover_data) ->
+                fixed_h = 0
+                if hover_data? then fixed_h = hover_data.v[0] / 360
+                return if (W is canvas.width and H is canvas.height and
+                           (canvas.fixed_h == fixed_h or not hover_data?))
+                canvas.fixed_h = fixed_h
+                'webgl'
             }
-            draw_data_point = { (ctx, retina, data, x,y, hover, selected) ->
-            }
-            draw_data_label = { (ctx, retina, data, x,y, hover, selected) =>
-                ctx.fillStyle = '#555'
-                label = utils.subscope_to_text(@props.scope, data.k)
-                if retina
-                    ctx.font = '18pt ' + mono_font
-                    ctx.fillText(label, x+20, y-20)
-                else
-                    ctx.font = '9pt ' + mono_font
-                    ctx.fillText(label, x+10, y-10)
-            }
-            draw_select_box = { (ctx, retina, L,T,W,H) ->
-                ctx.strokeStyle = main_color
-                ctx.fillStyle = main_color
+            draw_bg = { (gl, retina, L,T,W,H) ->
+                canvas = gl.canvas
+                CH = canvas.height
 
-                ctx.globalAlpha = 0.05
-                ctx.fillRect(L,T,W,H)
-                ctx.globalAlpha = 0.7
-
-                if retina
-                    ctx.lineWidth = 2
-                    ctx.strokeRect(L,T,W,H)
-                else
-                    ctx.strokeRect(L+0.5,T+0.5,W,H)
-            }
-            draw_bg = { (ctx, retina, L,T,W,H) ->
-                ctx.strokeStyle = '#bbb'
-
-                if retina
-                    ctx.lineWidth = 2
-                    ctx.strokeRect(L,T,W,H)
-                else
-                    ctx.strokeRect(L+0.5,T+0.5,W-1,H-1)
+                if not canvas.shader?
+                    canvas.shader = webgl.compile_shader gl, shader_sv
+                webgl.draw_rect gl, L,CH-(T+H),H,W, canvas.shader,
+                    lower: [L, CH-(T+H)]
+                    size: W
+                    fixed_h: canvas.fixed_h
             } />
 
 ColorPage = React.createClass

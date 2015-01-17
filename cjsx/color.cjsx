@@ -402,9 +402,23 @@ ColorPage = React.createClass
 
     componentDidMount: ->
         window.addEventListener('resize', @onresize)
+        window.addEventListener('keydown', @onkeydown)
 
     componentWillUnmount: ->
         window.removeEventListener('resize', @onresize)
+        window.removeEventListener('keydown', @onkeydown)
+
+    onkeydown: (evt) ->
+        return if evt.target.nodeName is 'INPUT'
+        if evt.key is '1' or evt.keyIdentifier is 'U+0031'
+            @setState mode: 'HS'
+            evt.preventDefault()
+        if evt.key is '2' or evt.keyIdentifier is 'U+0032'
+            @setState mode: 'HV'
+            evt.preventDefault()
+        if evt.key is '3' or evt.keyIdentifier is 'U+0033'
+            @setState mode: 'SV'
+            evt.preventDefault()
 
     render: ->
         <div>

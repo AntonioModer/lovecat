@@ -90,6 +90,7 @@ end
 
 function love.keypressed(key)
     if key == 'r' then
+        lovecat.reload()
         cupid.reload()
     end
 end

@@ -39,7 +39,7 @@ function lovecat.init_confs()
     lovecat.number = lovecat.namespace_root({
         name = 'number',
         default = 0.5,
-        data_to_file = function (ns, v) return lovecat.value_to_str(v) end,
+        data_to_file = function (ns, v) return lovecat.simple_value_to_str(v) end,
         client_to_data = function (ns, v) return v end,
         data_to_client = function (ns, v) return tostring(v) end,
     })
@@ -47,7 +47,7 @@ function lovecat.init_confs()
     lovecat.point = lovecat.namespace_root({
         name = 'point',
         default = {0, 0},
-        data_to_file = function (ns, v) return lovecat.value_to_str(v) end,
+        data_to_file = function (ns, v) return lovecat.simple_value_to_str(v) end,
         client_to_data = function (ns, v) return v end,
         data_to_client = function (ns, v) return '['..tostring(v[1])..','..tostring(v[2])..']' end,
     })
@@ -57,7 +57,7 @@ function lovecat.init_confs()
         default = function ()
             return { math.random() * 360, 90, 90 }
         end,
-        data_to_file = function (ns, v) return lovecat.value_to_str(v) end,
+        data_to_file = function (ns, v) return lovecat.simple_value_to_str(v) end,
         client_to_data = function (ns, v) return v end,
         data_to_client = function (ns, v) return '['..tostring(v[1])..','..tostring(v[2])..','..tostring(v[3])..']' end,
     })
@@ -65,7 +65,7 @@ function lovecat.init_confs()
     lovecat.grid = lovecat.namespace_root({
         name = 'grid',
         default = {},
-        data_to_file = function (ns, v) return lovecat.value_to_str(v) end,
+        data_to_file = function (ns, v) return lovecat.simple_value_to_str(v) end,
         client_to_data = function (ns, v) return v end,
         data_to_client = function (ns, v)
             res = {}
@@ -373,7 +373,7 @@ function lovecat.active_set_expire(ns, expire)
 end
 
 function lovecat.active_update()
-    lovecat.log('active heap size:', #lovecat.active_heap)
+    -- lovecat.log('active heap size:', #lovecat.active_heap)
     while #lovecat.active_heap>0 do
         local ns = lovecat.active_heap[1]
         local t = lovecat.active_expire[ns]
@@ -646,30 +646,13 @@ function lovecat.table_sorted_keys(tbl)
     return res
 end
 
-function lovecat.value_to_str(val)
+function lovecat.simple_value_to_str(val)
     if type(val) == 'number' then
         return tostring(val)
     elseif type(val) == 'string' then
         return string.format('%q', val)
     elseif type(val) == 'table' then
-        local is_seq = true
-        for k,v in pairs(val) do
-            if type(k) ~= 'number' then
-                is_seq = false
-                break
-            end
-        end
-        if is_seq then
-            return '{'..table.concat(lovecat.map(val, lovecat.value_to_str), ', ')..'}'
-        else
-            local res = {}
-            table.insert(res, '{')
-            for k,v in pairs(val) do
-                table.insert(res, k..'='..lovecat.value_to_str(v)..',')
-            end
-            table.insert(res, '}')
-            return res
-        end
+        return '{'..table.concat(lovecat.map(val, lovecat.simple_value_to_str), ', ')..'}'
     end
 end
 

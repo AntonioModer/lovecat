@@ -105,6 +105,32 @@
     bottom: 30px;
 }
 
+.grid-table {
+    @grid_size : 30px;
+    position: relative;
+
+    table {
+        border-spacing: 0px;
+        border-collapse: collapse;
+        td {
+            height: @grid_size;
+            min-width: @grid_size;
+            max-width: @grid_size;
+            border: solid 1px #e0e0e0;
+
+            font-family: @font-mono;
+            text-align: center;
+            font-size: 16px;
+            color: #777;
+        }
+    }
+
+    .grid-sel {
+        position: absolute;
+        border: solid 2px;
+    }
+}
+
 
 
 .navbar {
@@ -330,6 +356,11 @@ body {
             :hover {
                 color: @main_color;
             }
+        }
+
+        .grid-sel {
+            border-color: @main_color;
+            background-color: fadeout(@main_color, 90%);
         }
     }
 }

@@ -101,6 +101,12 @@ format_lua_value = (kind, v) ->
         when 'number' then String(v)
         when 'point' then '{' + v[0] + ',' + v[1] + '}'
         when 'color' then '{' + v[0] + ',' + v[1] + ',' + v[2] + '}'
+        when 'grid'
+            res = '{'
+            for [r,c,x] in v
+                res += '{'+r+','+c+',"'+x+'"},'
+            res += '}'
+            return res
 
 is_leaf_scope = (scope) ->
     return false if scope.length <= 1

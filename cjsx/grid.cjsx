@@ -2,8 +2,38 @@ React = require('react')
 widgets = require('./widgets')
 _ = require('lodash')
 utils = require('./utils')
+Color = require('color')
 
 grid_size = 33
+
+build_char_color = ->
+    C = {}
+    color = Color()
+    hsv = (h,s,v) ->
+        color.hsv(h,s,v).rgbString()
+
+    for c in [33..127]
+        x = 360/(127-33)*(c-33)
+        C[String.fromCharCode(c)] = hsv(x, 20, 90)
+
+    # digits
+    for c in [48..58]
+        x = 360 / 10 * (c-48)
+        C[String.fromCharCode(c)] = hsv(x, 20, 90)
+
+    # upper-case
+    for c in [65..91]
+        x = 360 / 26 * (c-65)
+        C[String.fromCharCode(c)] = hsv(x, 20, 90)
+
+    # upper-case
+    for c in [97..123]
+        x = 360 / 26 * (c-97)
+        C[String.fromCharCode(c)] = hsv(x, 20, 90)
+
+    return C
+
+char_colors = build_char_color()
 
 SingleGridPage = React.createClass
     getInitialState: ->
@@ -21,6 +51,8 @@ SingleGridPage = React.createClass
         sel_B: null
 
         data_hash: null
+
+        last_move: [0, 1]
 
     build_data_hash: (data) ->
         data_hash = {}
@@ -103,10 +135,34 @@ SingleGridPage = React.createClass
         window.removeEventListener('mousemove', @onmousemove)
         window.removeEventListener('mouseup', @onmouseup)
 
+    move_sel: (dr, dc, do_not_save_move) ->
+        @setState
+            sel_A: [@state.sel_A[0]+dr, @state.sel_A[1]+dc]
+            sel_B: [@state.sel_B[0]+dr, @state.sel_B[1]+dc]
+        if not do_not_save_move
+            @setState
+                last_move: [dr, dc]
+
     # for special keys
     onkeydown: (evt) ->
-        # console.log evt
-        # console.log String.fromCharCode(evt.keyCode)
+        switch
+            when evt.key == 'Down' or evt.keyIdentifier == 'Down'
+                @move_sel(1, 0)
+            when evt.key == 'Up' or evt.keyIdentifier == 'Up'
+                @move_sel(-1, 0)
+            when evt.key == 'Left' or evt.keyIdentifier == 'Left'
+                @move_sel(0, -1)
+            when evt.key == 'Right' or evt.keyIdentifier == 'Right'
+                @move_sel(0, 1)
+            when evt.key == 'Backspace' or evt.keyIdentifier == 'U+0008'
+                if @state.last_move?
+                    @move_sel(-@state.last_move[0], -@state.last_move[1], true)
+                    [r1,c1,r2,c2] = @get_sel_box_data()
+                    res = @fill_data(r1,c1, r2,c2, -> ' ')
+                    @props.onchange @props.scope, res
+            else
+                return
+        evt.preventDefault()
 
     # for grid cotents
     onkeypress: (evt) ->
@@ -117,6 +173,11 @@ SingleGridPage = React.createClass
         [r1,c1,r2,c2] = @get_sel_box_data()
         res = @fill_data(r1,c1, r2,c2, -> ch)
         @props.onchange @props.scope, res
+
+        if @state.last_move?
+            if (r1 is r2 and @state.last_move[1] is 0) or
+               (c1 is c2 and @state.last_move[0] is 0)
+                @move_sel(@state.last_move[0], @state.last_move[1])
 
     view_to_data: (r,c) ->
         rc = Math.floor(@state.view_r/2)
@@ -163,7 +224,8 @@ SingleGridPage = React.createClass
                         for c in [0...@state.view_c]
                             [r1,c1] = @view_to_data(r,c)
                             x = @get_data(r1,c1)
-                            <td key={c}>
+                            if x is ' ' then color=null else color=char_colors[x]
+                            <td key={c} style={'backgroundColor':color}>
                             {x}
                             </td>
                     }

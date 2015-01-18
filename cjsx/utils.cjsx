@@ -18,15 +18,15 @@ fetch_status = (onsuccess, onfail) ->
     fetch_url '/_lovecat_/status', null, onsuccess, onfail
 
 fetch_view = (scope, onsuccess, onfail) ->
-    fetch_url '/_lovecat_/view', 'scope='+encodeURI(scope_to_lua(scope)), onsuccess, onfail
+    fetch_url '/_lovecat_/view', 'scope='+encodeURIComponent(scope_to_lua(scope)), onsuccess, onfail
 
 fetch_active = (onsuccess, onfail) ->
     fetch_url '/_lovecat_/active', null, onsuccess, onfail
 
 send_update = (scope, new_val, onsuccess, onfail) ->
     fetch_url '/_lovecat_/update',
-        'scope='+encodeURI(scope_to_lua(scope)) +
-        '&val='+encodeURI(new_val), onsuccess, onfail
+        'scope='+encodeURIComponent(scope_to_lua(scope)) +
+        '&val='+encodeURIComponent(new_val), onsuccess, onfail
 
 scope_to_lua = (scope) ->
     res = '{'
@@ -104,7 +104,7 @@ format_lua_value = (kind, v) ->
         when 'grid'
             res = '{'
             for [r,c,x] in v
-                res += '{'+r+','+c+',"'+x+'"},'
+                res += '{'+r+','+c+','+ JSON.stringify(x) + '},'
             res += '}'
             return res
 

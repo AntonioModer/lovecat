@@ -70,7 +70,7 @@ function lovecat.init_confs()
         data_to_client = function (ns, v)
             res = {}
             for _, x in ipairs(v) do
-                table.insert(res, '['..tostring(x[1])..','..tostring(x[2])..',"'..tostring(x[3])..'"]')
+                table.insert(res, '['..tostring(x[1])..','..tostring(x[2])..','..string.format('%q', x[3])..']')
             end
             return '['..table.concat(res, ',')..']'
         end,

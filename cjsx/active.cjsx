@@ -84,7 +84,7 @@ ActivePage = React.createClass
                 else
                     input = @state.filter
                     active_list = _.filter(@state.active_list, ((v) -> utils.scope_contains input, v))
-                    active_list.sort()
+                    active_list.sort(utils.scope_compare)
                     active_list.map (X, K) =>
                         <div key={K} className='active-entry'>
                             <div className='ball'/>

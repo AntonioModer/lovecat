@@ -112,6 +112,29 @@ is_leaf_scope = (scope) ->
 is_retina = ->
     window.devicePixelRatio > 1
 
+scope_compare = (x, y) ->
+    order =
+        number: 0
+        point:  1
+        color:  2
+        grid:   3
+
+    if x[0] isnt y[0] then return order[x[0]] - order[y[0]]
+    for i in [1...Math.max(x.length, y.length)-1]
+        continue if x[i] is y[i]
+        switch
+            when _.isNumber(x[i]) and _.isNumber(y[i])
+                return x[i] - y[i]
+            when _.isNumber(x[i]) and _.isString(y[i])
+                return 1
+            when _.isString(x[i]) and _.isNumber(y[i])
+                return -1
+            when _.isString(x[i]) and _.isString(y[i])
+                return -1 if x[i] < y[i]
+                return 0  if x[i] == y[i]
+                return 1
+    return x.length - y.length
+
 module.exports =
     fetch_status: fetch_status
     fetch_view: fetch_view
@@ -126,4 +149,5 @@ module.exports =
     is_leaf_scope: is_leaf_scope
     subscope_to_text: subscope_to_text
     is_retina: is_retina
+    scope_compare: scope_compare
 

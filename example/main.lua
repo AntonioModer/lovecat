@@ -57,7 +57,15 @@ function lovecat_curve(num, ns, func)
     curve(num, function (i) return func(unpack(tmp[i])) end)
 end
 
+function test_grid()
+    love.graphics.setColor(HSV(unpack(lovecat.color.TestB.text)))
+    love.graphics.print('nonempty grids:' .. #lovecat.grid.Test.ClassA.for_test, 10, 10)
+
+    m = lovecat.grid.Test.ClassB.for_test
+end
+
 function love.draw()
+    test_grid()
     love.graphics.setColor(HSV(unpack(lovecat.color.Test.Class.lines)))
 
     -- love.graphics.setLineJoin('none')

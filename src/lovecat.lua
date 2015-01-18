@@ -55,7 +55,7 @@ function lovecat.init_confs()
     lovecat.color = lovecat.namespace_root({
         name = 'color',
         default = function ()
-            return { math.random() * 360, 100, 100 }
+            return { math.random() * 360, 90, 90 }
         end,
         data_to_file = function (ns, v) return lovecat.value_to_str(v) end,
         client_to_data = function (ns, v) return v end,
@@ -64,23 +64,16 @@ function lovecat.init_confs()
 
     lovecat.grid = lovecat.namespace_root({
         name = 'grid',
-        default = function (ns)
-            local r = ns._CONF_.nrow
-            local c = ns._CONF_.ncol
-            return lovecat.table_repeated(r, function()
-                lovecat.table_repeated(c, 'empty')
-            end)
-        end,
+        default = {},
         data_to_file = function (ns, v) return lovecat.value_to_str(v) end,
         client_to_data = function (ns, v) return v end,
         data_to_client = function (ns, v)
-            -- TBD
+            res = {}
+            for _, x in ipairs(v) do
+                table.insert(res, '['..tostring(x[1])..','..tostring(x[2])..',"'..tostring(x[3])..'"]')
+            end
+            return '['..table.concat(res, ',')..']'
         end,
-        data_to_app = function (ns, v)
-            -- TBD
-        end,
-        nrow = 20,
-        ncol = 20
     })
 end
 
@@ -94,9 +87,6 @@ lovecat.namespace_meta = {
     __index = function (ns, ident)
         if lovecat.namespace_isleaf(ident) then
             local data = lovecat.data_app_get(ns, ident)
-            if ns._CONF_.data_to_app then
-                data = ns._CONF_.data_to_app(ns, data)
-            end
             lovecat.active_check(ns)
             return data
         else

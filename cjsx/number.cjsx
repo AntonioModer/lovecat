@@ -30,7 +30,6 @@ NumberPage = React.createClass
     render: ->
         data = _.groupBy @props.data, (x) -> _.initial(x.k)
         groups = _.keys(data).sort()
-        console.log data
 
         <div>
         {

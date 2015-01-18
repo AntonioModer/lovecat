@@ -6,6 +6,7 @@ NumberPage = require('./number')
 ActivePage = require('./active')
 PointPage = require('./point')
 ColorPage = require('./color')
+GridPage = require('./grid')
 widgets = require './widgets'
 
 DataPage = React.createClass
@@ -111,7 +112,7 @@ DataPage = React.createClass
                 else
                     input = @state.filter
                     data = _.filter(@state.data, ((v) -> utils.scope_contains input, v.k))
-                    data = _.sortBy(data, 'k')
+                    data = data.sort (a,b) -> utils.scope_compare(a.k, b.k)
 
                     switch @props.scope[0]
                         when 'number'
@@ -122,6 +123,9 @@ DataPage = React.createClass
                                 onchange={@onchange}/>
                         when 'color'
                             <ColorPage data={data} scope={@props.scope}
+                                onchange={@onchange}/>
+                        when 'grid'
+                            <GridPage data={data} scope={@props.scope}
                                 onchange={@onchange}/>
             }
             </div>

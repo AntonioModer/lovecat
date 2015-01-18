@@ -383,6 +383,7 @@ function lovecat.active_set_expire(ns, expire)
 end
 
 function lovecat.active_update()
+    lovecat.log('active heap size:', #lovecat.active_heap)
     while #lovecat.active_heap>0 do
         local ns = lovecat.active_heap[1]
         local t = lovecat.active_expire[ns]

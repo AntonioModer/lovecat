@@ -108,22 +108,21 @@ TablePage = React.createClass
         view_width = document.documentElement.clientWidth
         view_height = document.documentElement.clientHeight
         canvas = @refs.canvas_bg.getDOMNode()
-        canvas.style.height = view_height + 'px'
 
-        if is_retina()
-            view_width *= 2
-            view_height *= 2
+        RE = if is_retina() then 2 else 1
 
         hover_data = null
         if @state.hover?
             hover_data = _.find(@props.data, (d) => _.isEqual(d.k, @state.hover))
 
         return if not @props.bg_need_redraw?
-        will_redraw = @props.bg_need_redraw(view_width, view_height, canvas, hover_data)
+        will_redraw = @props.bg_need_redraw(view_width*RE, view_height*RE,
+            canvas, hover_data)
         return if not will_redraw?
 
-        canvas.height = view_height
-        canvas.width = view_width
+        canvas.style.height = view_height + 'px'
+        canvas.height = view_height * RE
+        canvas.width = view_width * RE
 
         switch will_redraw
             when '2d'
@@ -137,7 +136,7 @@ TablePage = React.createClass
 
             when 'webgl'
                 gl = canvas.getContext('webgl') or canvas.getContext('experimental-webgl')
-                gl.viewport(0, 0, canvas.width, canvas.height)
+                gl.viewport(0, 0, view_width*RE, view_height*RE)
                 gl.clear(gl.COLOR_BUFFER_BIT)
                 @props.draw_bg(gl, is_retina(),
                     @state.table_left, @state.table_top,

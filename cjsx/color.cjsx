@@ -276,8 +276,9 @@ HSPage = React.createClass
             bg_need_redraw = { (W,H, canvas, hover_data) ->
                 fixed_v = 1.0
                 if hover_data? then fixed_v = hover_data.v[2] / 100
+                # alert 'check redraw' + W + ',' + canvas.width
                 return if (W is canvas.width and H is canvas.height and
-                           canvas.fixed_v == fixed_v)
+                           canvas.fixed_v is fixed_v)
                 canvas.fixed_v = fixed_v
                 'webgl'
             }
@@ -316,7 +317,7 @@ HVPage = React.createClass
                 fixed_s = 1.0
                 if hover_data? then fixed_s = hover_data.v[1] / 100
                 return if (W is canvas.width and H is canvas.height and
-                           canvas.fixed_s == fixed_s)
+                           canvas.fixed_s is fixed_s)
                 canvas.fixed_s = fixed_s
                 'webgl'
             }
@@ -364,7 +365,7 @@ SVPage = React.createClass
                 fixed_h = 0
                 if hover_data? then fixed_h = hover_data.v[0] / 360
                 return if (W is canvas.width and H is canvas.height and
-                           (canvas.fixed_h == fixed_h or not hover_data?))
+                           (canvas.fixed_h is fixed_h or not hover_data?))
                 canvas.fixed_h = fixed_h
                 'webgl'
             }

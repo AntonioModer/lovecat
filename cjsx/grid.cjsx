@@ -8,32 +8,41 @@ grid_size = 33
 
 build_char_color = ->
     C = {}
+    D = {}
     color = Color()
     hsv = (h,s,v) ->
         color.hsv(h,s,v).rgbString()
 
-    for c in [33..127]
-        x = 360/(127-33)*(c-33)
-        C[String.fromCharCode(c)] = hsv(x, 20, 90)
-
     # digits
     for c in [48..58]
         x = 360 / 10 * (c-48)
-        C[String.fromCharCode(c)] = hsv(x, 20, 90)
+        C[String.fromCharCode(c)] = hsv(x, 0, 98)
+        D[String.fromCharCode(c)] = hsv(x, 0, 40)
 
     # upper-case
     for c in [65..91]
         x = 360 / 26 * (c-65)
-        C[String.fromCharCode(c)] = hsv(x, 20, 90)
+        C[String.fromCharCode(c)] = hsv(x, 55, 100)
+        D[String.fromCharCode(c)] = hsv(x, 70, 60)
 
-    # upper-case
+    # lower-case
     for c in [97..123]
         x = 360 / 26 * (c-97)
-        C[String.fromCharCode(c)] = hsv(x, 20, 90)
+        C[String.fromCharCode(c)] = hsv(x, 10, 100)
+        D[String.fromCharCode(c)] = hsv(x, 60, 80)
 
-    return C
+    # others
+    others = [].concat([33...48], [58...65], [91...97], [123...127])
+    console.log others.length
+    for i in [0...others.length]
+        c = String.fromCharCode(others[i])
+        x = 360 / others.length * i
+        C[c] = hsv(x, 100, 50)
+        D[c] = hsv(x, 0, 100)
 
-char_colors = build_char_color()
+    return [C,D]
+
+[char_colors_bg, char_colors_fg] = build_char_color()
 
 SingleGridPage = React.createClass
     getInitialState: ->
@@ -224,8 +233,15 @@ SingleGridPage = React.createClass
                         for c in [0...@state.view_c]
                             [r1,c1] = @view_to_data(r,c)
                             x = @get_data(r1,c1)
-                            if x is ' ' then color=null else color=char_colors[x]
-                            <td key={c} style={'backgroundColor':color}>
+                            if x is ' '
+                                color_fg = null
+                                color_bg = null
+                            else
+                                color_fg = char_colors_fg[x]
+                                color_bg = char_colors_bg[x]
+                            <td key={c} style={
+                                'backgroundColor':color_bg,
+                                'color':color_fg }>
                             {x}
                             </td>
                     }

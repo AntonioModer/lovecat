@@ -81,7 +81,7 @@ SingleGridPage = React.createClass
         view_width = document.documentElement.clientWidth
         view_height = document.documentElement.clientHeight
         view_width -= 60
-        view_height -= 185
+        view_height -= 190
         view_r = Math.floor(view_height/grid_size)
         view_c = Math.floor(view_width /grid_size)
         if view_r isnt @state.view_r or view_c isnt @state.view_c
@@ -90,6 +90,32 @@ SingleGridPage = React.createClass
                 view_c: view_c
                 sel_A: [0, 0]
                 sel_B: [0, 0]
+
+    sanitize_coord: (r, c) ->
+        if r < 0 then r = 0
+        if r >= @state.view_r then r = @state.view_r-1
+        if c < 0 then c = 0
+        if c >= @state.view_c then c = @state.view_c-1
+        return [r,c]
+
+    sane_coord: (r, c) ->
+        return false if r < 0
+        return false if r >= @state.view_r
+        return false if c < 0
+        return false if c >= @state.view_c
+        return true
+
+    move_viewport: (r0, c0) ->
+        if r0 isnt @state.view_r0 or c0 isnt @state.view_c0
+            [Ar, Ac] = @state.sel_A
+            [Br, Bc] = @state.sel_B
+            [Ar, Ac] = @sanitize_coord(Ar+@state.view_r0-r0, Ac+@state.view_c0-c0)
+            [Br, Bc] = @sanitize_coord(Br+@state.view_r0-r0, Bc+@state.view_c0-c0)
+            @setState
+                view_r0: r0
+                view_c0: c0
+                sel_A: [Ar, Ac]
+                sel_B: [Br, Bc]
 
     componentWillMount: ->
         do @set_view_size
@@ -104,12 +130,16 @@ SingleGridPage = React.createClass
         window.addEventListener('mousedown', @onmousedown)
         window.addEventListener('keypress', @onkeypress)
         window.addEventListener('keydown', @onkeydown)
+        window.addEventListener('wheel', @onwheel)
+        window.addEventListener('mousescroll', @onwheel)
 
     componentDidUnmount: ->
         window.removeEventListener('resize', @set_view_size)
         window.removeEventListener('mousedown', @onmousedown)
         window.removeEventListener('keypress', @onkeypress)
         window.removeEventListener('keydown', @onkeydown)
+        window.removeEventListener('wheel', @onwheel)
+        window.removeEventListener('mousescroll', @onwheel)
 
     mouse_to_view: (evt) ->
         r = evt.pageY - utils.ele_top(@refs.table.getDOMNode()) - 1
@@ -125,14 +155,43 @@ SingleGridPage = React.createClass
         if c < 0 then c = 0
         if c >= @state.view_c then return
 
-        @setState
-            sel_A: [r,c]
-            sel_B: [r,c]
-        evt.preventDefault()
-        window.addEventListener('mousemove', @onmousemove)
-        window.addEventListener('mouseup', @onmouseup)
+        if evt.ctrlKey
+            @moving_x0 = evt.pageX
+            @moving_y0 = evt.pageY
+            @moving_r0 = @state.view_r0
+            @moving_c0 = @state.view_c0
+            evt.preventDefault()
+            window.addEventListener('mousemove', @move_onmousemove)
+            window.addEventListener('mouseup', @move_onmouseup)
+        else
+            @setState
+                sel_A: [r,c]
+                sel_B: [r,c]
+            evt.preventDefault()
+            window.addEventListener('mousemove', @sel_onmousemove)
+            window.addEventListener('mouseup', @sel_onmouseup)
 
-    onmousemove: (evt) ->
+    move_onmousemove: (evt) ->
+        delta_grid = (x) ->
+            x /= grid_size
+            if x < 0
+                -Math.floor(-x)
+            else
+                Math.floor(x)
+        dx = delta_grid(evt.pageX - @moving_x0)
+        dy = delta_grid(evt.pageY - @moving_y0)
+        now_r0 = @moving_r0 - dy
+        now_c0 = @moving_c0 - dx
+        @move_viewport(now_r0, now_c0)
+
+    move_onmouseup: (evt) ->
+        window.removeEventListener('mousemove', @move_onmousemove)
+        window.removeEventListener('mouseup', @move_onmouseup)
+
+    onwheel: (evt) ->
+        console.log evt
+
+    sel_onmousemove: (evt) ->
         [r,c] = @mouse_to_view(evt)
         if r < 0 then r = 0
         if r >= @state.view_r then r = @state.view_r-1
@@ -140,14 +199,17 @@ SingleGridPage = React.createClass
         if c >= @state.view_c then c = @state.view_c-1
         @setState sel_B: [r,c]
 
-    onmouseup: (evt) ->
-        window.removeEventListener('mousemove', @onmousemove)
-        window.removeEventListener('mouseup', @onmouseup)
+    sel_onmouseup: (evt) ->
+        window.removeEventListener('mousemove', @sel_onmousemove)
+        window.removeEventListener('mouseup', @sel_onmouseup)
 
     move_sel: (dr, dc, do_not_save_move) ->
         @setState
             sel_A: [@state.sel_A[0]+dr, @state.sel_A[1]+dc]
             sel_B: [@state.sel_B[0]+dr, @state.sel_B[1]+dc]
+        if (not @sane_coord(@state.sel_A[0], @state.sel_A[1]) or
+           not @sane_coord(@state.sel_B[0], @state.sel_B[1]))
+            @move_viewport(@state.view_r0+dr, @state.view_c0+dc)
         if not do_not_save_move
             @setState
                 last_move: [dr, dc]

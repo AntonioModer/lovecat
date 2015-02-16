@@ -128,26 +128,25 @@ void main(void) {
 selecter_orientation = (W, H) ->
     if W+120 < H then 'horizontal' else 'vertical'
 
-table_position = (retina, W,H, L,R,T,B) ->
-    if retina
-        W *= 2; H *= 2
-        L *= 2; R *= 2
-        T *= 2; B *= 2
+table_position = (dpr, W,H, L,R,T,B) ->
+    W *= dpr; H *= dpr
+    L *= dpr; R *= dpr
+    T *= dpr; B *= dpr
     [BX,BY] = [W-L-R, H-T-B]
     size = Math.min(BX, BY)
     if size % 2 == 0 then size -= 1
     return [ L+Math.floor((BX-size)/2), T+Math.floor((BY-size)/2)
              size, size ]
 
-circle_table_position = (retina, W, H) ->
-    table_position retina, W,H, 20,20,120,20
+circle_table_position = (dpr, W, H) ->
+    table_position dpr, W,H, 20,20,120,20
 
-square_table_position = (retina, W, H) ->
+square_table_position = (dpr, W, H) ->
     switch selecter_orientation(W, H)
         when 'horizontal'
-            table_position retina, W,H, 30,30,130,95
+            table_position dpr, W,H, 30,30,130,95
         when 'vertical'
-            table_position retina, W,H, 100,30,120,30
+            table_position dpr, W,H, 100,30,120,30
 
 circle_data_position = (h, x, L, T, W, H) ->
     h = (h/180-0.5) * Math.PI
@@ -184,20 +183,18 @@ data_color = (data) ->
     color = Color().hsv(data.v[0], data.v[1], data.v[2])
     return color.rgbString()
 
-draw_data_point = (ctx, retina, data, x,y, hover, selected) ->
-    RE = if retina then 2 else 1
-
+draw_data_point = (ctx, dpr, data, x,y, hover, selected) ->
     fill_circle = (x,y,r, color) ->
         ctx.beginPath()
-        ctx.arc(x,y,r*RE, 0, Math.PI*2)
+        ctx.arc(x,y,r*dpr, 0, Math.PI*2)
         ctx.fillStyle = color
         ctx.fill()
 
     stroke_circle = (x,y,r, color, w) ->
         ctx.beginPath()
-        ctx.arc(x,y,r*RE, 0, Math.PI*2)
+        ctx.arc(x,y,r*dpr, 0, Math.PI*2)
         ctx.strokeStyle = color
-        ctx.lineWidth = w*RE
+        ctx.lineWidth = w*dpr
         ctx.stroke()
 
     fill_circle(x,y,10, '#fff')
@@ -209,34 +206,31 @@ draw_data_point = (ctx, retina, data, x,y, hover, selected) ->
         ctx.fillStyle = data_color(data)
         ctx.globalAlpha = 1
         ctx.strokeStyle = '#fff'
-        ctx.lineWidth = RE
+        ctx.lineWidth = dpr
         x2 = Math.round(x)
         y2 = Math.round(y)
-        if retina
-            ctx.fillRect   x2-60,y2-140,120,120
-            ctx.strokeRect x2-60,y2-140,120,120
-        else
-            ctx.strokeRect x2-30+0.5,y2-90+0.5,60,60
-            ctx.fillRect   x2-30+0.5,y2-90+0.5,60,60
+        switch dpr
+            when 1, 1.5
+                ctx.strokeRect x2-30*dpr+0.5,y2-90*dpr+0.5,60*dpr,60*dpr
+                ctx.fillRect   x2-30*dpr+0.5,y2-90*dpr+0.5,60*dpr,60*dpr
+            else
+                ctx.fillRect   x2-30*dpr,y2-70*dpr,60*dpr,60*dpr
+                ctx.strokeRect x2-30*dpr,y2-70*dpr,60*dpr,60*dpr
 
-draw_data_label = (ctx, retina, data, x,y, hover, selected) ->
+draw_data_label = (ctx, dpr, data, x,y, hover, selected) ->
     label = utils.subscope_to_text(@props.scope, data.k)
-    if retina
-        ctx.font = '18pt ' + mono_font
-    else
-        ctx.font = '9pt ' + mono_font
+    ctx.font = (dpr*9) + 'pt ' + mono_font
 
     TW = ctx.measureText(label).width
-    RE = if retina then 2 else 1
 
     ctx.fillStyle = '#fff'
     ctx.globalAlpha = 0.3
-    ctx.fillRect x+10*RE, y-22*RE, TW+3*RE, 16*RE
+    ctx.fillRect x+10*dpr, y-22*dpr, TW+3*dpr, 16*dpr
     ctx.fillStyle = '#333'
     ctx.globalAlpha = 1
-    ctx.fillText(label, x+10*RE, y-10*RE)
+    ctx.fillText(label, x+10*dpr, y-10*dpr)
 
-draw_select_box = (ctx, retina, L,T,W,H) ->
+draw_select_box = (ctx, dpr, L,T,W,H) ->
     ctx.strokeStyle = '#fff'
     ctx.fillStyle = '#fff'
 
@@ -244,16 +238,17 @@ draw_select_box = (ctx, retina, L,T,W,H) ->
     ctx.fillRect(L,T,W,H)
     ctx.globalAlpha = 0.9
 
-    if retina
-        ctx.lineWidth = 2
-        ctx.strokeRect(L,T,W,H)
-    else
-        ctx.strokeRect(L+0.5,T+0.5,W,H)
+    switch dpr
+        when 1, 1.5
+            ctx.strokeRect(L+0.5,T+0.5,W,H)
+        else
+            ctx.lineWidth = 2
+            ctx.strokeRect(L,T,W,H)
 
-select_threshold = (touch, retina) ->
+select_threshold = (touch, dpr) ->
     threshold = 9
     if touch then threshold = 20
-    if retina then threshold *= 2
+    threshold *= dpr
     return threshold
 
 HSPage = React.createClass
@@ -282,7 +277,7 @@ HSPage = React.createClass
                 canvas.fixed_v = fixed_v
                 'webgl'
             }
-            draw_bg = { (gl, retina, L,T,W,H) ->
+            draw_bg = { (gl, dpr, L,T,W,H) ->
                 canvas = gl.canvas
                 CH = canvas.height
                 center_x = L+W/2
@@ -321,7 +316,7 @@ HVPage = React.createClass
                 canvas.fixed_s = fixed_s
                 'webgl'
             }
-            draw_bg = { (gl, retina, L,T,W,H) ->
+            draw_bg = { (gl, dpr, L,T,W,H) ->
                 canvas = gl.canvas
                 CH = canvas.height
                 center_x = L+W/2
@@ -369,7 +364,7 @@ SVPage = React.createClass
                 canvas.fixed_h = fixed_h
                 'webgl'
             }
-            draw_bg = { (gl, retina, L,T,W,H) ->
+            draw_bg = { (gl, dpr, L,T,W,H) ->
                 canvas = gl.canvas
                 CH = canvas.height
 

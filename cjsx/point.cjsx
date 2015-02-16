@@ -14,16 +14,16 @@ PointPage = React.createClass
         <TablePage
             data = {@props.data}
             onchange = {@props.onchange}
-            table_position = { (retina, W, H) ->
-                if retina
-                    size = Math.min(W*2-120, H*2-360)
-                    return [ Math.floor((W*2-size)/2), 300
-                             size, size ]
-                else
-                    size = Math.min(W-60, H-180)
-                    if size % 2 == 0 then size -= 1
-                    return [ Math.floor((W-size)/2), 150
-                             size, size ]
+            table_position = { (dpr, W, H) ->
+                size = Math.min(W-60, H-180)
+                left = Math.floor((W-size)/2 * dpr)
+                top  = Math.floor(150 * dpr)
+                size *= dpr
+                switch dpr
+                    when 1
+                        if size % 2 is 0 then size -= 1
+                return [ left, top
+                         size, size ]
             }
             data_to_screen = { ([x,y], L, T, W, H) ->
                 x = L + W * (1+x)/2
@@ -43,19 +43,15 @@ PointPage = React.createClass
 
                 return [x,y]
             }
-            select_threshold = { (touch, retina) ->
-                threshold = 5
-                if touch then threshold = 20
-                if retina then threshold *= 2
+            select_threshold = { (touch, dpr) ->
+                threshold = if touch then 20 else 5
+                threshold *= dpr
                 return threshold
             }
-            draw_data_point = { (ctx, retina, data, x,y, hover, selected) ->
-                circle_r = 4
-                circle_r2 = 7
-                if retina
-                    circle_r *= 2
-                    circle_r2 *= 2
-                    ctx.lineWidth = 2
+            draw_data_point = { (ctx, dpr, data, x,y, hover, selected) ->
+                circle_r = 4 * dpr
+                circle_r2 = 7 * dpr
+                ctx.lineWidth = dpr
 
                 if hover?
                     ctx.fillStyle = secondary_color
@@ -72,17 +68,13 @@ PointPage = React.createClass
                     ctx.arc(x, y, circle_r2, 0, Math.PI*2)
                     ctx.stroke()
             }
-            draw_data_label = { (ctx, retina, data, x,y, hover, selected) =>
+            draw_data_label = { (ctx, dpr, data, x,y, hover, selected) =>
                 ctx.fillStyle = '#555'
                 label = utils.subscope_to_text(@props.scope, data.k)
-                if retina
-                    ctx.font = '18pt ' + mono_font
-                    ctx.fillText(label, x+20, y-20)
-                else
-                    ctx.font = '9pt ' + mono_font
-                    ctx.fillText(label, x+10, y-10)
+                ctx.font = (9*dpr)+'pt ' + mono_font
+                ctx.fillText(label, x+10*dpr, y-10*dpr)
             }
-            draw_select_box = { (ctx, retina, L,T,W,H) ->
+            draw_select_box = { (ctx, dpr, L,T,W,H) ->
                 ctx.strokeStyle = main_color
                 ctx.fillStyle = main_color
 
@@ -90,24 +82,29 @@ PointPage = React.createClass
                 ctx.fillRect(L,T,W,H)
                 ctx.globalAlpha = 0.7
 
-                if retina
-                    ctx.lineWidth = 2
-                    ctx.strokeRect(L,T,W,H)
-                else
-                    ctx.strokeRect(L+0.5,T+0.5,W,H)
+                switch dpr
+                    when 1, 1.5
+                        ctx.lineWidth = 1
+                        ctx.strokeRect(L+0.5,T+0.5,W-1,H-1)
+                    else
+                        ctx.lineWidth = 2
+                        ctx.strokeRect(L,T,W,H)
             }
             bg_need_redraw = { (W,H, canvas) ->
                 return if W is canvas.width and H is canvas.height
                 '2d'
             }
-            draw_bg = { (ctx, retina, L,T,W,H) ->
+            draw_bg = { (ctx, dpr, L,T,W,H) ->
                 ctx.strokeStyle = '#bbb'
 
-                if retina
-                    ctx.lineWidth = 2
-                    ctx.strokeRect(L,T,W,H)
-                else
-                    ctx.strokeRect(L+0.5,T+0.5,W-1,H-1)
+                switch dpr
+                    when 1, 1.5
+                        console.log L,T,W,H
+                        ctx.lineWidth = 1
+                        ctx.strokeRect(L+0.5,T+0.5,W-1,H-1)
+                    else
+                        ctx.lineWidth = 2
+                        ctx.strokeRect(L,T,W,H)
 
                 center_x = L+W/2
                 center_y = T+H/2

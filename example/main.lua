@@ -20,6 +20,12 @@ function love.update(dt)
     end
 end
 
+--[[
+function love.update(dt)
+    lovecat.update(dt)
+end
+--]]
+
 function vector(ns, cnt)
     local res = {}
     for i=1,cnt do
@@ -59,7 +65,7 @@ end
 
 function test_grid()
     love.graphics.setColor(HSV(unpack(lovecat.color.TestB.text)))
-    love.graphics.print('nonempty grids:' .. #lovecat.grid.Test.ClassA.for_test, 10, 10)
+    love.graphics.print('nonempty grids:' .. #lovecat.grid.Test.ClassB.for_test, 10, 10)
 
     m = lovecat.grid.Test.ClassB.for_test
 end

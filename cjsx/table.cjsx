@@ -3,7 +3,7 @@ widgets = require('./widgets')
 _ = require('lodash')
 utils = require('./utils')
 
-is_retina = utils.is_retina
+DPR = window.devicePixelRatio
 
 TablePage = React.createClass
     getInitialState: ->
@@ -26,18 +26,22 @@ TablePage = React.createClass
     place_canvas: ->
         view_width = document.documentElement.clientWidth
         view_height = document.documentElement.clientHeight
-        @refs.canvas.getDOMNode().style.height = view_height + 'px'
 
-        if is_retina()
-            @refs.canvas.getDOMNode().height = view_height * 2
-            @refs.canvas.getDOMNode().width = view_width * 2
-        else
-            @refs.canvas.getDOMNode().height = view_height
-            @refs.canvas.getDOMNode().width = view_width
+        switch DPR
+            when 1.5
+                if view_width % 2  is 1 then view_width -= 1
+                if view_height % 2 is 1 then view_height -= 1
+
+        @refs.canvas.getDOMNode().style.height = view_height + 'px'
+        @refs.canvas.getDOMNode().style.width  = view_width  + 'px'
+
+        @refs.canvas.getDOMNode().height = view_height * DPR
+        @refs.canvas.getDOMNode().width  = view_width  * DPR
+
+        console.log @refs.canvas.getDOMNode().height, view_height, view_height * 1.5
 
         [L,T,W,H] = @props.table_position(
-            is_retina(),
-            view_width, view_height)
+            DPR, view_width, view_height)
 
         @setState
             table_left:   L
@@ -82,7 +86,7 @@ TablePage = React.createClass
             ctx.save()
             @props.draw_data_point(
                 ctx,
-                is_retina(),
+                DPR,
                 data,
                 x, y,
                 hover,
@@ -95,7 +99,7 @@ TablePage = React.createClass
                 ctx.save()
                 @props.draw_data_label(
                     ctx,
-                    is_retina(),
+                    DPR,
                     data,
                     x, y,
                     hover,
@@ -107,28 +111,33 @@ TablePage = React.createClass
     update_bg: ->
         view_width = document.documentElement.clientWidth
         view_height = document.documentElement.clientHeight
-        canvas = @refs.canvas_bg.getDOMNode()
 
-        RE = if is_retina() then 2 else 1
+        switch DPR
+            when 1.5
+                if view_width % 2  is 1 then view_width -= 1
+                if view_height % 2 is 1 then view_height -= 1
+
+        canvas = @refs.canvas_bg.getDOMNode()
 
         hover_data = null
         if @state.hover?
             hover_data = _.find(@props.data, (d) => _.isEqual(d.k, @state.hover))
 
         return if not @props.bg_need_redraw?
-        will_redraw = @props.bg_need_redraw(view_width*RE, view_height*RE,
+        will_redraw = @props.bg_need_redraw(view_width*DPR, view_height*DPR,
             canvas, hover_data)
         return if not will_redraw?
 
         canvas.style.height = view_height + 'px'
-        canvas.height = view_height * RE
-        canvas.width = view_width * RE
+        canvas.style.width  = view_width  + 'px'
+        canvas.height = view_height * DPR
+        canvas.width = view_width * DPR
 
         switch will_redraw
             when '2d'
                 ctx = canvas.getContext('2d')
                 ctx.save()
-                @props.draw_bg(ctx, is_retina(),
+                @props.draw_bg(ctx, DPR,
                     @state.table_left, @state.table_top,
                     @state.table_width, @state.table_height,
                     @state)
@@ -136,9 +145,9 @@ TablePage = React.createClass
 
             when 'webgl'
                 gl = canvas.getContext('webgl') or canvas.getContext('experimental-webgl')
-                gl.viewport(0, 0, view_width*RE, view_height*RE)
+                gl.viewport(0, 0, view_width*DPR, view_height*DPR)
                 gl.clear(gl.COLOR_BUFFER_BIT)
-                @props.draw_bg(gl, is_retina(),
+                @props.draw_bg(gl, DPR,
                     @state.table_left, @state.table_top,
                     @state.table_width, @state.table_height,
                     @state)
@@ -153,7 +162,7 @@ TablePage = React.createClass
         [x1,y1,x2,y2] = @get_select_box()
 
         if @props.draw_select_box?
-            @props.draw_select_box(ctx, is_retina(),
+            @props.draw_select_box(ctx, DPR,
                 x1, y1,
                 x2-x1, y2-y1,
                 @state)
@@ -208,23 +217,28 @@ TablePage = React.createClass
         window.removeEventListener('touchend', @ontouchend)
         window.removeEventListener('keydown', @onkeydown)
 
+    event_fix_retina: (evt) ->
+        pageX: Math.floor(evt.pageX * DPR)
+        pageY: Math.floor(evt.pageY * DPR)
+        clientX: Math.floor(evt.clientX * DPR)
+        clientY: Math.floor(evt.clientY * DPR)
+        shiftKey: evt.shiftKey
+
     ontouchmove: (evt) ->
-        alpha = if is_retina() then 2 else 1
         proxy_evt =
-            pageX: evt.touches[0].pageX * alpha
-            pageY: evt.touches[0].pageY * alpha
-            clientX: evt.touches[0].clientX * alpha
-            clientY: evt.touches[0].clientY * alpha
+            pageX: evt.touches[0].pageX
+            pageY: evt.touches[0].pageY
+            clientX: evt.touches[0].clientX
+            clientY: evt.touches[0].clientY
         @onmousemove(proxy_evt, true)
         evt.preventDefault()
 
     ontouchstart: (evt) ->
-        alpha = if is_retina() then 2 else 1
         proxy_evt =
-            pageX: evt.touches[0].pageX * alpha
-            pageY: evt.touches[0].pageY * alpha
-            clientX: evt.touches[0].clientX * alpha
-            clientY: evt.touches[0].clientY * alpha
+            pageX: evt.touches[0].pageX
+            pageY: evt.touches[0].pageY
+            clientX: evt.touches[0].clientX
+            clientY: evt.touches[0].clientY
         @onmousedown(proxy_evt, true)
 
     ontouchend: (evt) ->
@@ -233,6 +247,7 @@ TablePage = React.createClass
             @setState hover: null
 
     onmousedown: (evt, touch) ->
+        evt = @event_fix_retina(evt)
         @update_hover(evt, touch)
 
         if not @state.hover?
@@ -255,6 +270,7 @@ TablePage = React.createClass
                 @moving_points0.push({k:k, v:data})
 
     onmouseup: (evt, touch) ->
+        evt = @event_fix_retina(evt)
         if @state.select_box_B?
             selected = @get_selected()
             @setState
@@ -269,6 +285,7 @@ TablePage = React.createClass
             @moving_points0 = null
 
     onmousemove: (evt, touch) ->
+        evt = @event_fix_retina(evt)
         if @state.select_box_B?
             @setState select_box_B: [evt.clientX, evt.clientY]
 
@@ -298,7 +315,7 @@ TablePage = React.createClass
         y = evt.clientY
         hover = null
 
-        threshold = @props.select_threshold(touch, is_retina())
+        threshold = @props.select_threshold(touch, DPR)
 
         for m in @props.data
             [vx, vy] = @data_to_screen(m)

@@ -64,7 +64,7 @@ SingleGridPage = React.createClass
 
         data_hash: null
 
-        last_move: [0, 1]
+        last_move: null
 
     build_data_hash: (data) ->
         data_hash = {}
@@ -217,6 +217,7 @@ SingleGridPage = React.createClass
             @setState
                 sel_A: [r,c]
                 sel_B: [r,c]
+                last_move: null
             evt.preventDefault()
             window.addEventListener('mousemove', @sel_onmousemove)
             window.addEventListener('mouseup', @sel_onmouseup)
@@ -280,6 +281,7 @@ SingleGridPage = React.createClass
 
     # for special keys
     onkeydown: (evt) ->
+        console.log evt
         switch
             when evt.key == 'Down' or evt.keyIdentifier == 'Down'
                 @move_sel(1, 0)
@@ -289,11 +291,10 @@ SingleGridPage = React.createClass
                 @move_sel(0, -1)
             when evt.key == 'Right' or evt.keyIdentifier == 'Right'
                 @move_sel(0, 1)
-            when evt.key == 'Backspace' or evt.keyIdentifier == 'U+0008'
-                if @state.last_move?
-                    @move_sel(-@state.last_move[0], -@state.last_move[1], true)
-                    [r1,c1,r2,c2] = @get_sel_box_data()
-                    @apply_update(r1,c1, r2,c2, -> ' ')
+            when evt.key == 'Backspace' or evt.keyIdentifier == 'U+0008' or
+                 evt.key == 'Del' or evt.key == 'Delete' or evt.keyIdentifier == 'U+007F'
+                [r1,c1,r2,c2] = @get_sel_box_data()
+                @apply_update(r1,c1, r2,c2, -> ' ')
 #            when (evt.key == 'c' or evt.keyIdentifier == 'U+0043') and evt.ctrlKey
 #                console.log 'copy'
 #                console.log @take_data.apply(null, @get_sel_box_data())

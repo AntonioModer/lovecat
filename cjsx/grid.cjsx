@@ -131,6 +131,7 @@ SingleGridPage = React.createClass
         do @set_view_size
         window.addEventListener('resize', @set_view_size)
         window.addEventListener('mousedown', @onmousedown)
+        window.addEventListener('contextmenu', @oncontextmenu)
         window.addEventListener('keypress', @onkeypress)
         window.addEventListener('keydown', @onkeydown)
         window.addEventListener('wheel', @onwheel)
@@ -171,6 +172,7 @@ SingleGridPage = React.createClass
     componentDidUnmount: ->
         window.removeEventListener('resize', @set_view_size)
         window.removeEventListener('mousedown', @onmousedown)
+        window.removeEventListener('contextmenu', @oncontextmenu)
         window.removeEventListener('keypress', @onkeypress)
         window.removeEventListener('keydown', @onkeydown)
         window.removeEventListener('wheel', @onwheel)
@@ -183,14 +185,13 @@ SingleGridPage = React.createClass
         c = Math.floor(c/grid_size)
         return [r,c]
 
+    oncontextmenu: (evt) ->
+        evt.preventDefault()
+
     onmousedown: (evt) ->
         [r,c] = @mouse_to_view(evt)
-        if r < 0 then return
-        if r >= @state.view_r then return
-        if c < 0 then c = 0
-        if c >= @state.view_c then return
 
-        if evt.ctrlKey
+        if evt.ctrlKey or evt.button is 2
             @moving_x0 = evt.pageX
             @moving_y0 = evt.pageY
             @moving_r0 = @state.view_r0
@@ -199,6 +200,11 @@ SingleGridPage = React.createClass
             window.addEventListener('mousemove', @move_onmousemove)
             window.addEventListener('mouseup', @move_onmouseup)
         else
+            if r < 0 then return
+            if r >= @state.view_r then return
+            if c < 0 then c = 0
+            if c >= @state.view_c then return
+
             @setState
                 sel_A: [r,c]
                 sel_B: [r,c]
@@ -346,16 +352,15 @@ SingleGridPage = React.createClass
     clipboard_parse: (s) ->
         ascii = (ch) -> ch.charCodeAt()
         do ->
-        #try
+        try
             s = s.split('\n')
             s = _(s).dropWhile((x) -> x is '').dropRightWhile((y) -> y is '').value()
             throw 'invalid' if (s.length is 0)
             throw 'invalid' if not _.every(s, (x) -> x.length is s[0].length)
             throw 'invalid' if not _.every(s, (x) -> /^[\x20-\x7e]*$/.test(x))
-        #catch error
-        #    console.warn 'invalid clipboard data to paste', error
-        #    return
-            return s
+        catch error
+            console.warn 'invalid clipboard data to paste', error
+        return s
 
     render_marker: (n, style, rad) ->
         [r0,c0] = @view_to_data(0, 0)

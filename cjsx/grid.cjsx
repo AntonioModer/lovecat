@@ -133,6 +133,38 @@ SingleGridPage = React.createClass
         window.addEventListener('wheel', @onwheel)
         window.addEventListener('mousescroll', @onwheel)
 
+        window.addEventListener 'beforecopy', (e) ->
+            e.preventDefault()
+
+        window.addEventListener 'beforepaste', (e) ->
+            e.preventDefault()
+
+        window.addEventListener 'beforecut', (e) ->
+            e.preventDefault()
+
+        window.addEventListener 'copy', (e) =>
+            [r1, c1, r2, c2] = @get_sel_box_data()
+            data = @clipboard_get_data(r1,c1, r2,c2)
+            e.clipboardData.setData('text/plain', data)
+            e.preventDefault()
+
+        window.addEventListener 'paste', (e) =>
+            [r1, c1, r2, c2] = @get_sel_box_data()
+            data = e.clipboardData.getData('text/plain')
+            data = @clipboard_parse(data)
+            return if not data?
+            r2 = Math.min(r2, r1+data.length-1)
+            c2 = Math.min(c2, c1+data[0].length-1)
+            @apply_update(r1,c1, r2,c2, (r,c) -> data[r-r1][c-c1])
+            e.preventDefault()
+
+        window.addEventListener 'cut', (e) =>
+            [r1, c1, r2, c2] = @get_sel_box_data()
+            data = @clipboard_get_data(r1,c1, r2,c2)
+            e.clipboardData.setData('text/plain', data)
+            @apply_update(r1,c1, r2,c2, -> ' ')
+            e.preventDefault()
+
     componentDidUnmount: ->
         window.removeEventListener('resize', @set_view_size)
         window.removeEventListener('mousedown', @onmousedown)
@@ -229,8 +261,14 @@ SingleGridPage = React.createClass
                 if @state.last_move?
                     @move_sel(-@state.last_move[0], -@state.last_move[1], true)
                     [r1,c1,r2,c2] = @get_sel_box_data()
-                    res = @fill_data(r1,c1, r2,c2, -> ' ')
-                    @props.onchange @props.scope, res
+                    @apply_update(r1,c1, r2,c2, -> ' ')
+#            when (evt.key == 'c' or evt.keyIdentifier == 'U+0043') and evt.ctrlKey
+#                console.log 'copy'
+#                console.log @take_data.apply(null, @get_sel_box_data())
+#            when (evt.key == 'v' or evt.keyIdentifier == 'U+0056') and evt.ctrlKey
+#                console.log 'paste'
+#            when (evt.key == 'x' or evt.keyIdentifier == 'U+0058') and evt.ctrlKey
+#                console.log 'cut'
             else
                 return
         evt.preventDefault()
@@ -242,8 +280,7 @@ SingleGridPage = React.createClass
         ch = String.fromCharCode(evt.which)
 
         [r1,c1,r2,c2] = @get_sel_box_data()
-        res = @fill_data(r1,c1, r2,c2, -> ch)
-        @props.onchange @props.scope, res
+        @apply_update(r1,c1, r2,c2, -> ch)
 
         if @state.last_move?
             if (r1 is r2 and @state.last_move[1] is 0) or
@@ -284,6 +321,38 @@ SingleGridPage = React.createClass
                 continue if x is ' '
                 res.push([r,c,x])
         return res
+
+    apply_update: (r1,c1, r2,c2, func) ->
+        res = @fill_data(r1,c1, r2,c2, func)
+        @props.onchange @props.scope, res
+
+    clipboard_get_data: (r1,c1, r2,c2) ->
+        res = []
+        for r in [r1...r2+1]
+            line = ''
+            for c in [c1...c2+1]
+                Row = @state.data_hash[r]
+                if Row? and Row[c]?
+                    line += Row[c]
+                else
+                    line += ' '
+            res.push(line)
+        res.push('')
+        return res.join('\n')
+
+    clipboard_parse: (s) ->
+        ascii = (ch) -> ch.charCodeAt()
+        do ->
+        #try
+            s = s.split('\n')
+            s = _(s).dropWhile((x) -> x is '').dropRightWhile((y) -> y is '').value()
+            throw 'invalid' if (s.length is 0)
+            throw 'invalid' if not _.every(s, (x) -> x.length is s[0].length)
+            throw 'invalid' if not _.every(s, (x) -> /^[\x20-\x7e]*$/.test(x))
+        #catch error
+        #    console.warn 'invalid clipboard data to paste', error
+        #    return
+            return s
 
     render: ->
         <div className='grid-table' ref='table'>

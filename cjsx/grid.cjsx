@@ -132,6 +132,7 @@ SingleGridPage = React.createClass
         window.addEventListener('resize', @set_view_size)
         window.addEventListener('mousedown', @onmousedown)
         window.addEventListener('contextmenu', @oncontextmenu)
+        window.addEventListener('touchstart', @ontouchstart)
         window.addEventListener('keypress', @onkeypress)
         window.addEventListener('keydown', @onkeydown)
         window.addEventListener('wheel', @onwheel)
@@ -173,6 +174,7 @@ SingleGridPage = React.createClass
         window.removeEventListener('resize', @set_view_size)
         window.removeEventListener('mousedown', @onmousedown)
         window.removeEventListener('contextmenu', @oncontextmenu)
+        window.removeEventListener('touchstart', @ontouchstart)
         window.removeEventListener('keypress', @onkeypress)
         window.removeEventListener('keydown', @onkeydown)
         window.removeEventListener('wheel', @onwheel)
@@ -188,10 +190,15 @@ SingleGridPage = React.createClass
     oncontextmenu: (evt) ->
         evt.preventDefault()
 
+    ontouchstart: (evt) ->
+        evt.is_touch = true
+        evt.preventDefault = ->
+        @onmousedown(evt)
+
     onmousedown: (evt) ->
         [r,c] = @mouse_to_view(evt)
 
-        if evt.ctrlKey or evt.button is 2
+        if evt.ctrlKey or evt.button is 2 or evt.is_touch
             @moving_x0 = evt.pageX
             @moving_y0 = evt.pageY
             @moving_r0 = @state.view_r0
@@ -199,6 +206,8 @@ SingleGridPage = React.createClass
             evt.preventDefault()
             window.addEventListener('mousemove', @move_onmousemove)
             window.addEventListener('mouseup', @move_onmouseup)
+            window.addEventListener('touchmove', @move_ontouchmove)
+            window.addEventListener('touchend', @move_ontouchend)
         else
             if r < 0 then return
             if r >= @state.view_r then return
@@ -211,6 +220,18 @@ SingleGridPage = React.createClass
             evt.preventDefault()
             window.addEventListener('mousemove', @sel_onmousemove)
             window.addEventListener('mouseup', @sel_onmouseup)
+
+    move_ontouchmove: (evt) ->
+        proxy_evt =
+            pageX: evt.touches[0].pageX
+            pageY: evt.touches[0].pageY
+            clientX: evt.touches[0].clientX
+            clientY: evt.touches[0].clientY
+        @move_onmousemove(proxy_evt)
+        evt.preventDefault()
+
+    move_ontouchend: (evt) ->
+        @move_onmouseup()
 
     move_onmousemove: (evt) ->
         delta_grid = (x) ->
@@ -228,6 +249,8 @@ SingleGridPage = React.createClass
     move_onmouseup: (evt) ->
         window.removeEventListener('mousemove', @move_onmousemove)
         window.removeEventListener('mouseup', @move_onmouseup)
+        window.removeEventListener('touchmove', @mose_ontouchmove)
+        window.removeEventListener('touchend', @move_ontouchend)
 
     onwheel: (evt) ->
         console.log evt

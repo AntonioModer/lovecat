@@ -13,11 +13,14 @@ build_char_color = ->
     hsv = (h,s,v) ->
         color.hsv(h,s,v).rgbString()
 
+    mid = (l,r, n, x) ->
+        l + (r-l) / n * x
+
     # digits
     for c in [48..58]
-        x = 360 / 10 * (c-48)
-        C[String.fromCharCode(c)] = hsv(x, 0, 98)
-        D[String.fromCharCode(c)] = hsv(x, 0, 40)
+        x = (c-48)
+        C[String.fromCharCode(c)] = hsv(x, 0, mid(95, 60, 10, x))
+        D[String.fromCharCode(c)] = hsv(x, 0, mid(55, 20, 10, x))
 
     # upper-case
     for c in [65..91]

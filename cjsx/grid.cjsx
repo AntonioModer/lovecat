@@ -357,6 +357,26 @@ SingleGridPage = React.createClass
         #    return
             return s
 
+    render_marker: (n, style, rad) ->
+        [r0,c0] = @view_to_data(0, 0)
+        offset = (x, divisor) ->
+            Math.ceil(x/divisor)*divisor - x
+        r0 = offset(r0, n)
+        c0 = offset(c0, n)
+        pos = []
+        for r in _.range(r0, @state.view_r+1, n)
+            for c in _.range(c0, @state.view_c+1, n)
+                pos.push([r, c])
+        pos.map ([r, c], K) ->
+            <div className='marker' key={K} style={
+                x = c * grid_size
+                y = r * grid_size
+                left:   x
+                top:    y
+            }>
+                <div className={style}/>
+            </div>
+
     render: ->
         <div className='grid-table' ref='table'>
             <table><tbody>
@@ -389,6 +409,12 @@ SingleGridPage = React.createClass
                 height: (r2-r1+1) * grid_size-3
                 width:  (c2-c1+1) * grid_size-3
             }/>
+            {
+                @render_marker(3, 'marker-1', 1)
+            }
+            {
+                @render_marker(9, 'marker-3', 3)
+            }
         </div>
 
 GridPage = React.createClass

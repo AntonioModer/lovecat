@@ -415,10 +415,10 @@ SingleGridPage = React.createClass
                 width:  (c2-c1+1) * grid_size-3
             }/>
             {
-                @render_marker(3, 'marker-1', 1)
+                @render_marker(3, 'marker-2')
             }
             {
-                @render_marker(9, 'marker-3', 3)
+                @render_marker(9, 'marker-4')
             }
         </div>
 

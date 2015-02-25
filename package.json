@@ -21,6 +21,7 @@
     "gulp-less": "~2.0.1",
     "gulp-rename": "~1.2.0",
     "lodash": "~3.3.0",
-    "color": "~0.7.3"
+    "color": "~0.7.3",
+    "double-ended-queue": "~2.1.0-0"
   }
 }

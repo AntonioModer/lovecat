@@ -3,6 +3,7 @@ widgets = require('./widgets')
 _ = require('lodash')
 utils = require('./utils')
 Color = require('color')
+Deque = require 'double-ended-queue'
 
 grid_size = 33
 
@@ -67,6 +68,10 @@ SingleGridPage = React.createClass
         last_move: null
 
     build_data_hash: (data) ->
+        if @current_data? and not data.do_not_record
+            @undo_push(@current_data)
+        delete data.do_not_record
+        @current_data = data
         data_hash = {}
         for x in data
             [r,c,s] = x
@@ -126,6 +131,16 @@ SingleGridPage = React.createClass
 
     componentWillReceiveProps: (new_props) ->
         @build_data_hash(new_props.data)
+
+    undo_push: (state) ->
+        if not @undo_stack?
+            @undo_stack = new Deque()
+        if not @redo_stack?
+            @redo_stack = new Deque()
+        @redo_stack.clear()
+        @undo_stack.push(state)
+        if @undo_stack.length > 100
+            @undo_stack.shift()
 
     componentDidMount: ->
         do @set_view_size
@@ -308,13 +323,21 @@ SingleGridPage = React.createClass
                  evt.key == 'Del' or evt.key == 'Delete' or evt.keyIdentifier == 'U+007F'
                 [r1,c1,r2,c2] = @get_sel_box_data()
                 @apply_update(r1,c1, r2,c2, -> ' ')
-#            when (evt.key == 'c' or evt.keyIdentifier == 'U+0043') and evt.ctrlKey
-#                console.log 'copy'
-#                console.log @take_data.apply(null, @get_sel_box_data())
-#            when (evt.key == 'v' or evt.keyIdentifier == 'U+0056') and evt.ctrlKey
-#                console.log 'paste'
-#            when (evt.key == 'x' or evt.keyIdentifier == 'U+0058') and evt.ctrlKey
-#                console.log 'cut'
+            when (evt.key == 'h' or evt.keyIdentifier == 'U+0048' or
+                  evt.key == 'u' or evt.keyIdentifier == 'U+0055') and evt.ctrlKey
+                st = @undo_stack.pop()
+                if st?
+                    @redo_stack.push(@current_data)
+                    # the 'do_not_record' tag is retained during local updates
+                    st.do_not_record = true
+                    @props.onchange @props.scope, st
+            when (evt.key == 'l' or evt.keyIdentifier == 'U+004C' or
+                  evt.key == 'r' or evt.keyIdentifier == 'U+0052') and evt.ctrlKey
+                st = @redo_stack.pop()
+                if st?
+                    @undo_stack.push(@current_data)
+                    st.do_not_record = true
+                    @props.onchange @props.scope, st
             else
                 return
         evt.preventDefault()

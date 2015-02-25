@@ -105,27 +105,49 @@
     bottom: 30px;
 }
 
+.grid-table-border {
+    margin-top: -15px;
+}
+
 .grid-table {
     @grid_size : 30px;
-    position: relative;
+    @border_color: #eee;
+    @boundary_color: #ddd;
 
-    table {
-        position: absolute;
-        border: solid 2px #aaa;
-        left: -1px;
-        top: -1px;
-        padding-top: 5px;
-        border-spacing: 0px;
-        border-collapse: collapse;
-        td {
-            height: @grid_size;
-            min-width: @grid_size;
-            max-width: @grid_size;
-            border: solid 1px #eee;
+    display: table;
+    position: absolute;
+    border: none;
+    overflow: hidden;
+    .row {
+        display: table-row;
+        .column {
+            display: table-cell;
+
+            height: @grid_size + 2px;
+            width:  @grid_size + 2px;
+            min-width: @grid_size + 2px;
+            max-width: @grid_size + 2px;
+            border-left: solid 1px @border_color;
+            border-top:  solid 1px @border_color;
 
             font-family: @font-mono;
             text-align: center;
             font-size: 16px;
+            vertical-align: middle;
+
+            &:last-child {
+                border-right: solid 1px @boundary_color;
+            }
+            &:first-child {
+                border-left:  solid 1px @boundary_color;
+            }
+        }
+
+        &:last-child .column {
+            border-bottom: solid 1px @boundary_color;
+        }
+        &:first-child .column {
+            border-top:    solid 1px @boundary_color;
         }
     }
 
@@ -340,6 +362,8 @@ body {
 }
 
 .generate-theme(@theme, @main_color) {
+    @secondary_color: spin(@main_color, 60);
+
     .theme-@{theme} {
         .navbar {
             background-color: #f3f3f3;
@@ -352,13 +376,13 @@ body {
                 }
                 &.active {
                     .navitem-text{
-                        color: spin(@main_color, 60);
+                        color: @secondary_color;
                     }
                     background-color: #e0e0e0;
                 }
                 &:hover {
                     .navitem-text{
-                        color: spin(@main_color, 60);
+                        color: @secondary_color;
                     }
                     // cursor: pointer;
                 }
@@ -408,7 +432,11 @@ body {
 
         .grid-sel {
             border-color: @main_color;
-            background-color: fadeout(@main_color, 90%);
+            background-color: fadeout(@main_color, 95%);
+        }
+
+        .grid-table-border {
+            border: solid 3px #ddd;
         }
     }
 }

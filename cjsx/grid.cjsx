@@ -89,7 +89,7 @@ SingleGridPage = React.createClass
         view_width = document.documentElement.clientWidth
         view_height = document.documentElement.clientHeight
         view_width -= 60
-        view_height -= 190
+        view_height -= 180
         view_r = Math.floor(view_height/grid_size)
         view_c = Math.floor(view_width /grid_size)
         if view_r isnt @state.view_r or view_c isnt @state.view_c
@@ -98,6 +98,10 @@ SingleGridPage = React.createClass
                 view_c: view_c
                 sel_A: [0, 0]
                 sel_B: [0, 0]
+        if @refs.border?
+            border = @refs.border.getDOMNode()
+            border.style.width  = grid_size * view_c + 1 + 'px'
+            border.style.height = grid_size * view_r + 1 + 'px'
 
     sanitize_coord: (r, c) ->
         if r < 0 then r = 0
@@ -443,43 +447,45 @@ SingleGridPage = React.createClass
             </div>
 
     render: ->
-        <div className='grid-table' ref='table'>
-            <table><tbody>
-            {
-                for r in [0...@state.view_r]
-                    <tr key={r}>
-                    {
-                        for c in [0...@state.view_c]
-                            [r1,c1] = @view_to_data(r,c)
-                            x = @get_data(r1,c1)
-                            if x is ' '
-                                color_fg = null
-                                color_bg = null
-                            else
-                                color_fg = char_colors_fg[x]
-                                color_bg = char_colors_bg[x]
-                            <td key={c} style={
-                                'backgroundColor':color_bg,
-                                'color':color_fg }>
-                            {x}
-                            </td>
-                    }
-                    </tr>
-            }
-            </tbody></table>
-            <div className='grid-sel' ref='sel-box' style={
-                [r1,c1,r2,c2] = @get_sel_box_view()
-                left:   c1 * grid_size
-                top:    r1 * grid_size
-                height: (r2-r1+1) * grid_size-3
-                width:  (c2-c1+1) * grid_size-3
-            }/>
-            {
-                @render_marker(3, 'marker-2')
-            }
-            {
-                @render_marker(9, 'marker-4')
-            }
+        <div className='grid-table-border' ref='border'>
+            <div className='grid-table' ref='table'>
+                <div>
+                {
+                    for r in [0...@state.view_r]
+                        <div className='row' key={r}>
+                        {
+                            for c in [0...@state.view_c]
+                                [r1,c1] = @view_to_data(r,c)
+                                x = @get_data(r1,c1)
+                                if x is ' '
+                                    color_fg = null
+                                    color_bg = null
+                                else
+                                    color_fg = char_colors_fg[x]
+                                    color_bg = char_colors_bg[x]
+                                <div className='column' key={c} style={
+                                    'backgroundColor':color_bg,
+                                    'color':color_fg }>
+                                {x}
+                                </div>
+                        }
+                        </div>
+                }
+                </div>
+                <div className='grid-sel' ref='sel-box' style={
+                    [r1,c1,r2,c2] = @get_sel_box_view()
+                    left:   c1 * grid_size
+                    top:    r1 * grid_size
+                    height: (r2-r1+1) * grid_size-3
+                    width:  (c2-c1+1) * grid_size-3
+                }/>
+                {
+                    @render_marker(3, 'marker-2')
+                }
+                {
+                    @render_marker(9, 'marker-4')
+                }
+            </div>
         </div>
 
 GridPage = React.createClass

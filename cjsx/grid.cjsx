@@ -203,6 +203,7 @@ SingleGridPage = React.createClass
             @moving_y0 = evt.pageY
             @moving_r0 = @state.view_r0
             @moving_c0 = @state.view_c0
+            @moving_speed = if evt.shiftKey or evt.altKey then 2 else 1
             evt.preventDefault()
             window.addEventListener('mousemove', @move_onmousemove)
             window.addEventListener('mouseup', @move_onmouseup)
@@ -241,8 +242,8 @@ SingleGridPage = React.createClass
                 -Math.floor(-x)
             else
                 Math.floor(x)
-        dx = delta_grid(evt.pageX - @moving_x0)
-        dy = delta_grid(evt.pageY - @moving_y0)
+        dx = delta_grid((evt.pageX - @moving_x0) * @moving_speed)
+        dy = delta_grid((evt.pageY - @moving_y0) * @moving_speed)
         now_r0 = @moving_r0 - dy
         now_c0 = @moving_c0 - dx
         @move_viewport(now_r0, now_c0)

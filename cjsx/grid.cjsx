@@ -203,7 +203,7 @@ SingleGridPage = React.createClass
             @moving_y0 = evt.pageY
             @moving_r0 = @state.view_r0
             @moving_c0 = @state.view_c0
-            @moving_speed = if evt.shiftKey or evt.altKey then 2 else 1
+            @moving_speed = if evt.shiftKey or evt.altKey then 3 else 1
             evt.preventDefault()
             window.addEventListener('mousemove', @move_onmousemove)
             window.addEventListener('mouseup', @move_onmouseup)
@@ -294,15 +294,16 @@ SingleGridPage = React.createClass
     # for special keys
     onkeydown: (evt) ->
         console.log evt
+        speed = if evt.shiftKey or evt.altKey then 5 else 1
         switch
             when evt.key == 'Down' or evt.keyIdentifier == 'Down'
-                @move_sel(1, 0)
+                @move_sel(speed, 0)
             when evt.key == 'Up' or evt.keyIdentifier == 'Up'
-                @move_sel(-1, 0)
+                @move_sel(-speed, 0)
             when evt.key == 'Left' or evt.keyIdentifier == 'Left'
-                @move_sel(0, -1)
+                @move_sel(0, -speed)
             when evt.key == 'Right' or evt.keyIdentifier == 'Right'
-                @move_sel(0, 1)
+                @move_sel(0, speed)
             when evt.key == 'Backspace' or evt.keyIdentifier == 'U+0008' or
                  evt.key == 'Del' or evt.key == 'Delete' or evt.keyIdentifier == 'U+007F'
                 [r1,c1,r2,c2] = @get_sel_box_data()

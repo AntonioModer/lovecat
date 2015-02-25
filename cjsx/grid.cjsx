@@ -254,7 +254,18 @@ SingleGridPage = React.createClass
         window.removeEventListener('touchend', @move_ontouchend)
 
     onwheel: (evt) ->
-        console.log evt
+        switch
+            when evt.wheelDeltaX?
+                delta_r = -evt.wheelDeltaY / 40
+                delta_c = evt.wheelDeltaX / 40
+            when evt.deltaX?
+                delta_r = evt.deltaY
+                delta_c = evt.deltaX
+        delta_r = Math.round(delta_r)
+        delta_c = Math.round(delta_c)
+        if (evt.shiftKey or evt.altKey) and delta_c is 0
+            [delta_r, delta_c] = [delta_c, delta_r]
+        @move_viewport(@state.view_r0 + delta_r, @state.view_c0 + delta_c)
 
     sel_onmousemove: (evt) ->
         [r,c] = @mouse_to_view(evt)

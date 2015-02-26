@@ -301,40 +301,46 @@ SingleGridPage = React.createClass
 
     sel_onmousemove: (evt) ->
         [r,c] = @mouse_to_view(evt)
-        if r < 0 then r = 0
-        if r >= @state.view_r then r = @state.view_r-1
-        if c < 0 then c = 0
-        if c >= @state.view_c then c = @state.view_c-1
+        [r,c] = @sanitize_coord(r, c)
         @setState sel_B: [r,c]
 
     sel_onmouseup: (evt) ->
         window.removeEventListener('mousemove', @sel_onmousemove)
         window.removeEventListener('mouseup', @sel_onmouseup)
 
-    move_sel: (dr, dc, do_not_save_move) ->
-        @setState
-            sel_A: [@state.sel_A[0]+dr, @state.sel_A[1]+dc]
-            sel_B: [@state.sel_B[0]+dr, @state.sel_B[1]+dc]
-        if (not @sane_coord(@state.sel_A[0], @state.sel_A[1]) or
-           not @sane_coord(@state.sel_B[0], @state.sel_B[1]))
-            @move_viewport(@state.view_r0+dr, @state.view_c0+dc)
-        if not do_not_save_move
+    move_sel: (dr, dc, resize_sel, speed=1) ->
+        if resize_sel
+            [r,c] = @state.sel_B
+            [r,c] = [r+dr*speed, c+dc*speed]
+            [r,c] = @sanitize_coord(r,c)
+            @setState sel_B: [r,c]
+        else
+            dr *= Math.abs(@state.sel_A[0] - @state.sel_B[0]) + 1
+            dc *= Math.abs(@state.sel_A[1] - @state.sel_B[1]) + 1
+            dr *= speed if Math.abs(dr) <= 1
+            dc *= speed if Math.abs(dc) <= 1
+            @setState
+                sel_A: [@state.sel_A[0]+dr, @state.sel_A[1]+dc]
+                sel_B: [@state.sel_B[0]+dr, @state.sel_B[1]+dc]
+            if (not @sane_coord(@state.sel_A[0], @state.sel_A[1]) or
+               not @sane_coord(@state.sel_B[0], @state.sel_B[1]))
+                @move_viewport(@state.view_r0+dr, @state.view_c0+dc)
             @setState
                 last_move: [dr, dc]
 
     # for special keys
     onkeydown: (evt) ->
         console.log evt
-        speed = if evt.shiftKey or evt.altKey then 5 else 1
+        speed = if evt.altKey then 5 else 1
         switch
             when evt.key == 'Down' or evt.keyIdentifier == 'Down'
-                @move_sel(speed, 0)
+                @move_sel(1, 0, evt.shiftKey, speed)
             when evt.key == 'Up' or evt.keyIdentifier == 'Up'
-                @move_sel(-speed, 0)
+                @move_sel(-1, 0, evt.shiftKey, speed)
             when evt.key == 'Left' or evt.keyIdentifier == 'Left'
-                @move_sel(0, -speed)
+                @move_sel(0, -1, evt.shiftKey, speed)
             when evt.key == 'Right' or evt.keyIdentifier == 'Right'
-                @move_sel(0, speed)
+                @move_sel(0, 1, evt.shiftKey, speed)
             when evt.key == 'Backspace' or evt.keyIdentifier == 'U+0008' or
                  evt.key == 'Del' or evt.key == 'Delete' or evt.keyIdentifier == 'U+007F'
                 [r1,c1,r2,c2] = @get_sel_box_data()

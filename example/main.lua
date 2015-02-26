@@ -18,6 +18,8 @@ function love.update(dt)
         lovecat.update(0.1)
         love.timer.sleep(0.1)
     end
+    -- https://love2d.org/forums/viewtopic.php?f=4&t=77893
+    collectgarbage()
 end
 
 --[[

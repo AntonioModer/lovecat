@@ -35,14 +35,17 @@ scope_to_lua = (scope) ->
         res += ', '
     res += '}'
 
-scope_to_url = (scope) ->
-    res = '/' + scope[0]
+scope_to_string = (scope) ->
+    res = scope[0]
     for x in scope[1..]
         if _.isNumber(x)
             res += '[' + x + ']'
         else
             res += '.' + x
-    encodeURI(res)
+    return res
+
+scope_to_url = (scope) ->
+    encodeURI('/' + scope_to_string(scope))
 
 subscope_to_text = (scope, subscope) ->
     subscope = subscope[scope.length...]
@@ -149,6 +152,7 @@ module.exports =
     ele_left: ele_left
     ele_top: ele_top
     scope_to_url: scope_to_url
+    scope_to_string: scope_to_string
     url_to_scope: url_to_scope
     scope_contains: scope_contains
     format_lua_value: format_lua_value

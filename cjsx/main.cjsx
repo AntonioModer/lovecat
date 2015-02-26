@@ -132,11 +132,18 @@ DataPage = React.createClass
         </div>
 
 TopPage = React.createClass
+    set_window_title: ->
+        if @props.scope[0]?
+            document.title = 'lovecat.' + utils.scope_to_string @props.scope
+
     page_kind: ->
         res = if not @props.scope[0]?
             'active'
         else
             @props.scope[0]
+
+    componentDidMount: ->
+        do @set_window_title
 
     render: ->
         <div className={'theme-'+@page_kind()}>

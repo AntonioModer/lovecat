@@ -180,7 +180,10 @@ SingleGridPage = React.createClass
             return if not data?
             r2 = Math.min(r2, r1+data.length-1)
             c2 = Math.min(c2, c1+data[0].length-1)
-            @apply_update(r1,c1, r2,c2, (r,c) -> data[r-r1][c-c1])
+            @apply_update(r1,c1, r2,c2, (r,c,o) ->
+                d = data[r-r1][c-c1]
+                if d is ' ' then o else d
+            )
             e.preventDefault()
 
         window.addEventListener 'cut', (e) =>
@@ -398,7 +401,7 @@ SingleGridPage = React.createClass
                     res.push([r,c,vc])
         for r in [r1...r2+1]
             for c in [c1...c2+1]
-                x = func(r,c)
+                x = func(r,c, @get_data(r,c))
                 continue if x is ' '
                 res.push([r,c,x])
         return res

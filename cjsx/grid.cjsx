@@ -230,8 +230,7 @@ SingleGridPage = React.createClass
         [r,c] = @mouse_to_view(evt)
 
         if evt.ctrlKey or evt.button is 2 or evt.is_touch
-            @moving_x0 = evt.pageX
-            @moving_y0 = evt.pageY
+            [@moving_r, @moving_c] = [r,c]
             @moving_r0 = @state.view_r0
             @moving_c0 = @state.view_c0
             @moving_speed = if evt.shiftKey or evt.altKey then 3 else 1
@@ -241,11 +240,7 @@ SingleGridPage = React.createClass
             window.addEventListener('touchmove', @move_ontouchmove)
             window.addEventListener('touchend', @move_ontouchend)
         else
-            if r < 0 then return
-            if r >= @state.view_r then return
-            if c < 0 then c = 0
-            if c >= @state.view_c then return
-
+            return if not @sane_coord(r, c)
             @setState
                 sel_A: [r,c]
                 sel_B: [r,c]
@@ -267,16 +262,11 @@ SingleGridPage = React.createClass
         @move_onmouseup()
 
     move_onmousemove: (evt) ->
-        delta_grid = (x) ->
-            x /= grid_size
-            if x < 0
-                -Math.floor(-x)
-            else
-                Math.floor(x)
-        dx = delta_grid((evt.pageX - @moving_x0) * @moving_speed)
-        dy = delta_grid((evt.pageY - @moving_y0) * @moving_speed)
-        now_r0 = @moving_r0 - dy
-        now_c0 = @moving_c0 - dx
+        [r,c] = @mouse_to_view(evt)
+        dr = (r - @moving_r) * @moving_speed
+        dc = (c - @moving_c) * @moving_speed
+        now_r0 = @moving_r0 - dr
+        now_c0 = @moving_c0 - dc
         @move_viewport(now_r0, now_c0)
 
     move_onmouseup: (evt) ->

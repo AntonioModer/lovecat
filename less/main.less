@@ -309,6 +309,43 @@
     margin-left: 150px;
 }
 
+.status-bar {
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    height: 20px;
+    width: 100%;
+
+    overflow: hidden;
+    white-space: nowrap;
+
+    padding-bottom: 4px;
+    padding-top: 3px;
+    padding-left: 25px;
+
+    font-family: @font-sans;
+    font-size: 12pt;
+    line-height: 20px;
+
+    background-color: #fbfbfb;
+    border-top: solid 2px #eee;
+
+    .status-val {
+        font-family: @font-mono;
+        color: #444;
+    }
+
+    .status-visible {
+        display: inline-block;
+        min-width: 320px;
+    }
+
+    .status-sel {
+        display: inline-block;
+        min-width: 200px;
+    }
+}
+
 .active-entry {
     a {
         color: #555;
@@ -437,6 +474,10 @@ body {
 
         .grid-table-border {
             border: solid 3px #ddd;
+        }
+
+        .status-bar {
+            color: @main_color;
         }
     }
 }

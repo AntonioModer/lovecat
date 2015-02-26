@@ -150,6 +150,7 @@ SingleGridPage = React.createClass
         do @set_view_size
         window.addEventListener('resize', @set_view_size)
         window.addEventListener('mousedown', @onmousedown)
+        window.addEventListener('mousemove', @onmousemove)
         window.addEventListener('contextmenu', @oncontextmenu)
         window.addEventListener('touchstart', @ontouchstart)
         window.addEventListener('keypress', @onkeypress)
@@ -192,6 +193,7 @@ SingleGridPage = React.createClass
     componentDidUnmount: ->
         window.removeEventListener('resize', @set_view_size)
         window.removeEventListener('mousedown', @onmousedown)
+        window.removeEventListener('mousemove', @onmousemove)
         window.removeEventListener('contextmenu', @oncontextmenu)
         window.removeEventListener('touchstart', @ontouchstart)
         window.removeEventListener('keypress', @onkeypress)
@@ -213,6 +215,16 @@ SingleGridPage = React.createClass
         evt.is_touch = true
         evt.preventDefault = ->
         @onmousedown(evt)
+
+    onmousemove: (evt) ->
+        [r,c] = @mouse_to_view(evt)
+        if @sane_coord(r,c)
+            [r,c] = @view_to_data(r,c)
+            cursor = [r,c]
+        else
+            cursor = null
+        if not _.isEqual(cursor, @state.cursor_position)
+            @setState cursor_position: cursor
 
     onmousedown: (evt) ->
         [r,c] = @mouse_to_view(evt)
@@ -447,43 +459,84 @@ SingleGridPage = React.createClass
             </div>
 
     render: ->
-        <div className='grid-table-border' ref='border'>
-            <div className='grid-table' ref='table'>
-                <div>
-                {
-                    for r in [0...@state.view_r]
-                        <div className='row' key={r}>
-                        {
-                            for c in [0...@state.view_c]
-                                [r1,c1] = @view_to_data(r,c)
-                                x = @get_data(r1,c1)
-                                if x is ' '
-                                    color_fg = null
-                                    color_bg = null
-                                else
-                                    color_fg = char_colors_fg[x]
-                                    color_bg = char_colors_bg[x]
-                                <div className='column' key={c} style={
-                                    'backgroundColor':color_bg,
-                                    'color':color_fg }>
-                                {x}
-                                </div>
-                        }
-                        </div>
-                }
+        <div>
+            <div className='grid-table-border' ref='border'>
+                <div className='grid-table' ref='table'>
+                    <div>
+                    {
+                        for r in [0...@state.view_r]
+                            <div className='row' key={r}>
+                            {
+                                for c in [0...@state.view_c]
+                                    [r1,c1] = @view_to_data(r,c)
+                                    x = @get_data(r1,c1)
+                                    if x is ' '
+                                        color_fg = null
+                                        color_bg = null
+                                    else
+                                        color_fg = char_colors_fg[x]
+                                        color_bg = char_colors_bg[x]
+                                    <div className='column' key={c} style={
+                                        'backgroundColor':color_bg,
+                                        'color':color_fg }>
+                                    {x}
+                                    </div>
+                            }
+                            </div>
+                    }
+                    </div>
+                    <div className='grid-sel' ref='sel-box' style={
+                        [r1,c1,r2,c2] = @get_sel_box_view()
+                        left:   c1 * grid_size
+                        top:    r1 * grid_size
+                        height: (r2-r1+1) * grid_size-3
+                        width:  (c2-c1+1) * grid_size-3
+                    }/>
+                    {
+                        @render_marker(3, 'marker-2')
+                    }
+                    {
+                        @render_marker(9, 'marker-4')
+                    }
                 </div>
-                <div className='grid-sel' ref='sel-box' style={
-                    [r1,c1,r2,c2] = @get_sel_box_view()
-                    left:   c1 * grid_size
-                    top:    r1 * grid_size
-                    height: (r2-r1+1) * grid_size-3
-                    width:  (c2-c1+1) * grid_size-3
-                }/>
+            </div>
+            <div className='status-bar'>
+                <span className='status-visible'>
+                    visible &nbsp;
+                    <span className='status-val'>
+                    {
+                        [r1, c1] = @view_to_data(0, 0)
+                        [r2, c2] = @view_to_data(@state.view_r-1, @state.view_c-1)
+                        <span>
+                            ({r1},{c1}) -- ({r2},{c2})
+                        </span>
+                    }
+                    </span>
+                </span>
+                <span className='status-sel'>
+                    selected &nbsp;
+                    <span className='status-val'>
+                    {
+                        [r1,c1, r2,c2] = @get_sel_box_view()
+                        <span>
+                            {r2-r1+1} x {c2-c1+1}
+                        </span>
+                    }
+                    </span>
+                </span>
                 {
-                    @render_marker(3, 'marker-2')
-                }
-                {
-                    @render_marker(9, 'marker-4')
+                    if @state.cursor_position?
+                        <span className='status-cursor'>
+                            cursor &nbsp;
+                            <span className='status-val'>
+                            {
+                                [r,c] = @state.cursor_position
+                                <span>
+                                    ({r}, {c})
+                                </span>
+                            }
+                            </span>
+                        </span>
                 }
             </div>
         </div>

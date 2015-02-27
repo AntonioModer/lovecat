@@ -283,7 +283,20 @@ return lovecat
 ]]
     out:close()
 
-    os.rename(save_tmp, lovecat.save_file)
+    local ok, err = os.rename(save_tmp, lovecat.save_file)
+    if not ok then
+        -- for Windows
+        local save_ori = lovecat.save_file .. '.ori'
+        os.remove(save_ori)
+        os.rename(lovecat.save_file, save_ori)
+        local ok, err = os.rename(save_tmp, lovecat.save_file)
+        if not ok then
+            os.rename(save_ori, lovecat.save_file)
+            lovecat.log('unable to save data: ' .. err)
+        else
+            os.remove(save_ori)
+        end
+    end
     lovecat.log('saved to "' .. lovecat.save_file .. '"')
 end
 

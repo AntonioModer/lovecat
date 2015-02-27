@@ -13,6 +13,7 @@ function love.load()
     require 'catmull-rom'
 end
 
+--[[
 function love.update(dt)
     for i=1,10 do
         lovecat.update(0.1)
@@ -21,12 +22,12 @@ function love.update(dt)
     -- https://love2d.org/forums/viewtopic.php?f=4&t=77893
     collectgarbage()
 end
+--]]
 
---[[
 function love.update(dt)
     lovecat.update(dt)
+    collectgarbage()
 end
---]]
 
 function vector(ns, cnt)
     local res = {}

@@ -110,18 +110,22 @@
 }
 
 .grid-table {
-    @grid_size : 30px;
+    @grid_size : 27px;
     @border_color: #eee;
     @boundary_color: #ddd;
 
-    display: table;
+    display: flex;
+    display: -webkit-flex;
     position: absolute;
-    border: none;
     overflow: hidden;
     .row {
-        display: table-row;
+        display: flex;
+        display: -webkit-flex;
         .column {
-            display: table-cell;
+            display: flex;
+            display: -webkit-flex;
+            justify-content: center;
+            -webkit-justify-content: center;
 
             height: @grid_size + 2px;
             width:  @grid_size + 2px;
@@ -130,10 +134,13 @@
             border-left: solid 1px @border_color;
             border-top:  solid 1px @border_color;
 
-            font-family: @font-mono;
-            text-align: center;
-            font-size: 16px;
-            vertical-align: middle;
+            .text {
+                font-family: @font-mono;
+                font-size: 16px;
+                align-self: center;
+                -webkit-align-self: center;
+                display: inline;
+            }
 
             &:last-child {
                 border-right: solid 1px @boundary_color;

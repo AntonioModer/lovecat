@@ -5,7 +5,7 @@ utils = require('./utils')
 Color = require('color')
 Deque = require 'double-ended-queue'
 
-grid_size = 33
+grid_size = 30
 
 build_char_color = ->
     C = {}
@@ -477,10 +477,10 @@ SingleGridPage = React.createClass
                                     else
                                         color_fg = char_colors_fg[x]
                                         color_bg = char_colors_bg[x]
-                                    <div className='column' key={c} style={
-                                        'backgroundColor':color_bg,
-                                        'color':color_fg }>
-                                    {x}
+                                    <div className='column' key={c} style={'backgroundColor':color_bg}>
+                                        <div className='text' style={'color':color_fg}>
+                                        {x}
+                                        </div>
                                     </div>
                             }
                             </div>

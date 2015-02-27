@@ -353,6 +353,8 @@ SingleGridPage = React.createClass
                     @undo_stack.push(@current_data)
                     st.do_not_record = true
                     @props.onchange @props.scope, st
+            when (evt.key == 'o' or evt.keyIdentifier == 'U+004F') and evt.ctrlKey
+                @move_viewport(0, 0)
             else
                 return
         evt.preventDefault()

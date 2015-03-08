@@ -231,8 +231,8 @@ draw_data_label = (ctx, dpr, data, x,y, hover, selected) ->
     ctx.fillText(label, x+10*dpr, y-10*dpr)
 
 draw_select_box = (ctx, dpr, L,T,W,H) ->
-    ctx.strokeStyle = '#fff'
-    ctx.fillStyle = '#fff'
+    ctx.strokeStyle = '#f0f0f0'
+    ctx.fillStyle = '#f0f0f0'
 
     ctx.globalAlpha = 0.2
     ctx.fillRect(L,T,W,H)

@@ -14,17 +14,21 @@ NavBar = React.createClass
             href = '/'
         else
             href = '/' + x
-        <div className={cx} onTouchStart={=> @ontouchstart(href)}>
-            <a href={href}>
-                <span className='navitem-text'>
+        <a href={href}>
+            <div className={cx} onTouchStart={=> @ontouchstart(href)}>
+                <div className='navitem-text'>
                 {x}
-                </span>
-            </a>
-        </div>
+                </div>
+            </div>
+        </a>
 
     render: ->
         <div className='navbar'>
-            <div className='brand'>lovecat</div>&nbsp;
+            <div className='brand'>
+                <div className='brand-text'>
+                    lovecat
+                </div>
+            </div>
 
             { @entry('active') }
             { @entry('number') }

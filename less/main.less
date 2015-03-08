@@ -111,7 +111,7 @@
 
 .grid-table {
     @grid_size : 27px;
-    @border_color: #eee;
+    @border_color: #f5f5f5;
     @boundary_color: #ddd;
 
     display: flex;
@@ -199,12 +199,14 @@
         }
         .marker-4 {
             position: absolute;
-            border-radius: 7px;
             width: 9px;
             height: 9px;
-            left: -6px;
-            top: -6px;
-            border: solid 2px #ddd;
+            left: -4px;
+            top: -4px;
+
+            transform: rotate(45deg);
+
+            background: #ddd;
             z-index: 14;
         }
     }

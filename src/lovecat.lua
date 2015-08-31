@@ -1,6 +1,6 @@
 local lovecat = {
     _VERSION     = 'lovecat v0.0.1',
-    _DESCRIPTION = 'Web-based Parameter Tuning for LÖVE',
+    _DESCRIPTION = 'Game Parameter Editing',
     _URL         = 'https://github.com/CoffeeKitty/lovecat',
     _LICENSE     = [[
         MIT LICENSE
@@ -31,7 +31,7 @@ local lovecat = {
 lovecat.host = "*"
 lovecat.port = 7000
 lovecat.whitelist = { "127.0.0.1", "192.168.*.*" }
-lovecat.save_file = 'lovecat-saved.txt'
+lovecat.data_file = 'lovecat-data.txt'
 lovecat.active_delay = 60 -- in seconds
 lovecat.save_delay = 1    -- in seconds
 
@@ -193,16 +193,16 @@ function lovecat.data_client_set(ns, ident, new_val)
 end
 
 function lovecat.data_load()
-    if not lovecat.file_exists(lovecat.save_file) then
+    if not lovecat.file_exists(lovecat.data_file) then
         lovecat.log('Warning: saved file does not exist; using a new lovecat tree')
         lovecat.data = {}
         lovecat.data_version = 0
         return
     end
-    local ok, res = pcall(loadfile, lovecat.save_file)
+    local ok, res = pcall(loadfile, lovecat.data_file)
     if not ok or res == nil or
         not pcall(function() res = res() end) then
-        lovecat.log('Error: failed to load saved file "' .. lovecat.save_file .. '"')
+        lovecat.log('Error: failed to load saved file "' .. lovecat.data_file .. '"')
         assert(false, 'failed to load savefile')
     else
         lovecat.data = res
@@ -211,7 +211,7 @@ function lovecat.data_load()
 end
 
 function lovecat.data_actual_save()
-    local save_tmp = lovecat.save_file .. '.tmp'
+    local save_tmp = lovecat.data_file .. '.tmp'
     local out = io.output(save_tmp)
 
     out:write('local lovecat = {}\n\n\n-- namespaces:\n')
@@ -252,7 +252,7 @@ function lovecat.data_actual_save()
     out:write('\n\n')
 
     out:write [[
--- The following code tries to make the saved file a drop-in
+-- The following code tries to make the data file a drop-in
 -- replacement for lovecat.lua
 
 local function make_tostring(prefix, node)
@@ -283,21 +283,21 @@ return lovecat
 ]]
     out:close()
 
-    local ok, err = os.rename(save_tmp, lovecat.save_file)
+    local ok, err = os.rename(save_tmp, lovecat.data_file)
     if not ok then
         -- for Windows
-        local save_ori = lovecat.save_file .. '.ori'
+        local save_ori = lovecat.data_file .. '.ori'
         os.remove(save_ori)
-        os.rename(lovecat.save_file, save_ori)
-        local ok, err = os.rename(save_tmp, lovecat.save_file)
+        os.rename(lovecat.data_file, save_ori)
+        local ok, err = os.rename(save_tmp, lovecat.data_file)
         if not ok then
-            os.rename(save_ori, lovecat.save_file)
+            os.rename(save_ori, lovecat.data_file)
             lovecat.log('unable to save data: ' .. err)
         else
             os.remove(save_ori)
         end
     end
-    lovecat.log('saved to "' .. lovecat.save_file .. '"')
+    lovecat.log('saved to "' .. lovecat.data_file .. '"')
 end
 
 -- Will actually write to disk after 1 second

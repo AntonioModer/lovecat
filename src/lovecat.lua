@@ -25,6 +25,11 @@ local lovecat = {
         CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
         TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
         SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+        ---------------
+
+        This file may contain several frontend libraries. See LICENSE for
+        details.
     ]]
 }
 
@@ -278,6 +283,7 @@ lovecat.update       = function() end
 lovecat.watch_add    = function() end
 lovecat.watch_remove = function() end
 lovecat.set_default  = function() end
+lovecat.reload       = function() end
 
 return lovecat
 ]]

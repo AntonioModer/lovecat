@@ -51,7 +51,20 @@ function lovecat.init_confs()
 
     lovecat.point = lovecat.namespace_root({
         name = 'point',
-        default = {0, 0},
+        default = function(ns, ident)
+            if type(ident) == 'number' then
+                a = 0.02
+                r = 1-a
+                len = a * (1-r^math.abs(ident)) / (1-r)
+                theta = ident * (math.pi/12)
+                x, y = math.cos(theta)*len, math.sin(theta)*len
+                return { x, y }
+            else
+                x, y = math.random(), math.random()
+                x, y = 2*x-1, 2*y-1
+                return { x, y }
+            end
+        end,
         data_to_file = function (ns, v) return lovecat.simple_value_to_str(v) end,
         client_to_data = function (ns, v) return v end,
         data_to_client = function (ns, v) return '['..tostring(v[1])..','..tostring(v[2])..']' end,

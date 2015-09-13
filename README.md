@@ -2,7 +2,7 @@
 Lovecat: Game Parameter Editing
 ===============================
 
-Lovecat is a tool to help improving your game developing productivity. Using
+Lovecat is a tool to help improving your game development productivity. Using
 Lovecat, you can edit your game parameters in a browser, and see the changes
 in the running game in real time.
 

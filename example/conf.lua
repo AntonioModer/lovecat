@@ -1,4 +1,4 @@
-package.path = '../src/?.lua;?.txt;' .. package.path
+package.path = '../src/?.lua;../?.lua;?.txt;' .. package.path
 
 lovecat = require 'lovecat'
 -- lovecat = require 'lovecat-data'

@@ -2,3 +2,4 @@ node_modules
 cjsx/*.js
 less/*.css
 /lovecat.lua
+/lovecat.tar.bz2

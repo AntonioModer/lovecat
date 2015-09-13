@@ -72,9 +72,13 @@ gulp.task 'build-js', ->
 gulp.task 'build-css', ->
     bundle_css_production 'less/main.less', 'less', 'generated.min.css'
 
-gulp.task 'cut-lua', shell.task [ "sed '/--==--==--==--/,$d' src/lovecat.lua > lovecat.lua" ]
+gulp.task 'check-env', ->
+    if process.env.NODE_ENV isnt 'production'
+        throw 'please set NODE_ENV to "production"'
 
-gulp.task 'release', ['build-js', 'build-css', 'cut-lua'], ->
+gulp.task 'cut-lua', shell.task "sed '/--==--==--==--/,$d' src/lovecat.lua > lovecat.lua"
+
+gulp.task 'build-lua', ['build-js', 'build-css', 'cut-lua'], ->
     js = fs.readFileSync('cjsx/generated.min.js')
     css = fs.readFileSync('less/generated.min.css')
 
@@ -88,4 +92,7 @@ lovecat.pages["_lovecat_/app.js"] = [=====[#{js}]=====]
 return lovecat
 """
 
-    fs.appendFile('lovecat.lua', to_append)
+    fs.appendFileSync('lovecat.lua', to_append)
+
+gulp.task 'release', ['check-env', 'build-lua'], shell.task 'rm -rf lovecat.tar.bz2 && tar cjf lovecat.tar.bz2 lovecat.lua example/ LICENSE README.md'
+

@@ -63,7 +63,8 @@ function love.load()
         nil
     )
 
-    love.graphics.setFont(love.graphics.newFont(16))
+    love.graphics.setFont(love.graphics.newFont(14))
+    love.graphics.setBackgroundColor(255,255,255)
 end
 
 function love.update(dt)
@@ -107,8 +108,6 @@ function love.update(dt)
 end
 
 function love.draw()
-    love.graphics.setBackgroundColor(255,255,255)
-
     local tile_margin = lovecat_range(lovecat.number.Graphics.tile_margin, 0, 10)
     for _, wall in ipairs(walls) do
         local x, y = wall:getWorldCenter()
@@ -141,12 +140,13 @@ function love.draw()
 
     if player_is_supported then
         lovecat_color(lovecat.color.Graphics.hud)
+        love.graphics.print('Move: [left] [right]   |   Jump: [space]   |    Reload: [r]', 10, 10)
         if player_is_supported() then
-            love.graphics.print('player is on the ground', 10, 10)
+            love.graphics.print('player is on the ground', 10, 35)
         else
-            love.graphics.print('player is NOT on the ground', 10, 10)
+            love.graphics.print('player is NOT on the ground', 10, 35)
         end
-        love.graphics.print('score: ' .. 10 * player_coins(), 10, 40)
+        love.graphics.print('score: ' .. 10 * player_coins(), 10, 60)
     end
 end
 
@@ -263,7 +263,6 @@ function lovecat_range(x, lower, upper)
 end
 
 function HSV(h, s, v)
-    if s <= 0 then return v,v,v end
     h, s, v = h/360*6, s/100, v/100
     local c = v*s
     local x = (1-math.abs((h%2)-1))*c

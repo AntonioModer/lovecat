@@ -53,9 +53,9 @@ function lovecat.init_confs()
         name = 'point',
         default = function(ns, ident)
             if type(ident) == 'number' then
-                a = 0.02
+                a = 0.3
                 r = 1-a
-                len = a * (1-r^math.abs(ident)) / (1-r)
+                len = a * (1-r^math.abs(ident/24)) / (1-r)
                 theta = ident * (math.pi/12)
                 x, y = math.cos(theta)*len, math.sin(theta)*len
                 return { x, y }

@@ -157,43 +157,14 @@ SingleGridPage = React.createClass
         window.addEventListener('keydown', @onkeydown)
         window.addEventListener('wheel', @onwheel)
         window.addEventListener('mousescroll', @onwheel)
+        window.addEventListener('beforecopy', @onbeforecopy)
+        window.addEventListener('beforepaste', @onbeforepaste)
+        window.addEventListener('beforecut', @onbeforecut)
+        window.addEventListener('copy', @oncopy)
+        window.addEventListener('paste', @onpaste)
+        window.addEventListener('cut', @oncut)
 
-        window.addEventListener 'beforecopy', (e) ->
-            e.preventDefault()
-
-        window.addEventListener 'beforepaste', (e) ->
-            e.preventDefault()
-
-        window.addEventListener 'beforecut', (e) ->
-            e.preventDefault()
-
-        window.addEventListener 'copy', (e) =>
-            [r1, c1, r2, c2] = @get_sel_box_data()
-            data = @clipboard_get_data(r1,c1, r2,c2)
-            e.clipboardData.setData('text/plain', data)
-            e.preventDefault()
-
-        window.addEventListener 'paste', (e) =>
-            [r1, c1, r2, c2] = @get_sel_box_data()
-            data = e.clipboardData.getData('text/plain')
-            data = @clipboard_parse(data)
-            return if not data?
-            r2 = Math.min(r2, r1+data.length-1)
-            c2 = Math.min(c2, c1+data[0].length-1)
-            @apply_update(r1,c1, r2,c2, (r,c,o) ->
-                d = data[r-r1][c-c1]
-                if d is ' ' then o else d
-            )
-            e.preventDefault()
-
-        window.addEventListener 'cut', (e) =>
-            [r1, c1, r2, c2] = @get_sel_box_data()
-            data = @clipboard_get_data(r1,c1, r2,c2)
-            e.clipboardData.setData('text/plain', data)
-            @apply_update(r1,c1, r2,c2, -> ' ')
-            e.preventDefault()
-
-    componentDidUnmount: ->
+    componentWillUnmount: ->
         window.removeEventListener('resize', @set_view_size)
         window.removeEventListener('mousedown', @onmousedown)
         window.removeEventListener('mousemove', @onmousemove)
@@ -203,6 +174,47 @@ SingleGridPage = React.createClass
         window.removeEventListener('keydown', @onkeydown)
         window.removeEventListener('wheel', @onwheel)
         window.removeEventListener('mousescroll', @onwheel)
+        window.removeEventListener('beforecopy', @onbeforecopy)
+        window.removeEventListener('beforepaste', @onbeforepaste)
+        window.removeEventListener('beforecut', @onbeforecut)
+        window.removeEventListener('copy', @oncopy)
+        window.removeEventListener('paste', @onpaste)
+        window.removeEventListener('cut', @oncut)
+
+    onbeforecopy: (e) ->
+        e.preventDefault()
+
+    onbeforecut: (e) ->
+        e.preventDefault()
+
+    onbeforepaste: (e) ->
+        e.preventDefault()
+
+    oncopy: (e) ->
+        [r1, c1, r2, c2] = @get_sel_box_data()
+        data = @clipboard_get_data(r1,c1, r2,c2)
+        e.clipboardData.setData('text/plain', data)
+        e.preventDefault()
+
+    onpaste: (e) ->
+        [r1, c1, r2, c2] = @get_sel_box_data()
+        data = e.clipboardData.getData('text/plain')
+        data = @clipboard_parse(data)
+        return if not data?
+        r2 = Math.min(r2, r1+data.length-1)
+        c2 = Math.min(c2, c1+data[0].length-1)
+        @apply_update(r1,c1, r2,c2, (r,c,o) ->
+            d = data[r-r1][c-c1]
+            if d is ' ' then o else d
+        )
+        e.preventDefault()
+
+    oncut: (e) ->
+        [r1, c1, r2, c2] = @get_sel_box_data()
+        data = @clipboard_get_data(r1,c1, r2,c2)
+        e.clipboardData.setData('text/plain', data)
+        @apply_update(r1,c1, r2,c2, -> ' ')
+        e.preventDefault()
 
     mouse_to_view: (evt) ->
         r = evt.pageY - utils.ele_top(@refs.table.getDOMNode()) - 1

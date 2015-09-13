@@ -13,11 +13,11 @@ Demo
 ----
 
 * Make sure you have LÖVE installed
-* Download Lovecat releasing package
-* Run the example LÖVE project in the releasing package
+* Download the latest released package of Lovecat
+* Run the example LÖVE project in the released package
 * Open your browser at http://127.0.0.1:7000
-* Play with the website, and watch for changes in the game window
-* (Optional) Access the same website on a tablet device
+* Play with the browser-based UI, and watch for changes in the game window
+* (Optional) Try the same website from a tablet device
 
 Tutorial
 --------

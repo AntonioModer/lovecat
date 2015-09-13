@@ -1,5 +1,4 @@
 node_modules
 cjsx/*.js
 less/*.css
-example/lovecat-data.txt
 /lovecat.lua

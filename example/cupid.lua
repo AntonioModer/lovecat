@@ -3,6 +3,8 @@
 -- Available under the same license as Love
 -----------------------------------------------------
 
+-- With minor modifications by Yucheng Zhang
+
 
 -----------------------------------------------------
 -- Cupid Configuration

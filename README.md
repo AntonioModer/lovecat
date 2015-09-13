@@ -75,7 +75,7 @@ lovecat.point.BigDog.LeftEyeShape[10]
 Parameters are used without prior declaration. When a parameter is first
 referenced, it will be assigned a default value.
 
-### Parameter types
+### Parameter Types
 
 Lovecat only offers several primitive types of parameters. When you need some
 other type, you can always try to blend existing parameter types in some way.
@@ -133,11 +133,11 @@ local x_blended = x * 1000 + 1000
 By providing only primitive parameters, the library size is kept small, while
 Lovecat parameters can be used for a large variety of purposes.
 
-### Working with hot-reloading
+### Working with Hot-Reloading
 
 In conjunction with Lovecat, it is recommended you watch and hot-reload your
-game program and assets. See demo for a program hot-reloading example, which
-uses cupid (https://bitbucket.org/basicer/cupid/).
+game program and assets. See the demo for a program hot-reloading example,
+which uses a modified [cupid](https://bitbucket.org/basicer/cupid/).
 
 When hot-reloading your program, care must be taken:
 
@@ -158,8 +158,8 @@ lovecat = require 'lovecat-saved.txt'
 
 ### Watch for Parameter Changes
 
-Most of the time you should use refetch Lovecat parameter values in each
-frame, so when Lovecat updates a parameter, it takes effect automatically. But
+Most of the time you should refetch Lovecat parameter values in each frame, so
+when Lovecat updates a parameter, it takes effect automatically. But
 sometimes, watching for parameter changes can be helpful.
 
 * `lovecat.watch_add(ns, func)`
@@ -188,7 +188,7 @@ sometimes, watching for parameter changes can be helpful.
 
 #### Tablets
 
-Tablets are supported, although with a more limited feature set.
+Tablets are supported, although with a smaller feature set.
 
 #### Configuration
 
@@ -197,8 +197,8 @@ There are some configuration parameters at the beginning of `lovecat.lua`.
 Background
 ----------
 
-This tool is inspired by Bret Victor's Inventing on Principle, and lovebird
-(https://github.com/rxi/lovebird).
+This tool is inspired by Bret Victor's Inventing on Principle,
+and [lovebird](https://github.com/rxi/lovebird).
 
 License
 -------

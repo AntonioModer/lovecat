@@ -481,14 +481,14 @@ end
 
 function lovecat.watch_notify(ns, ident)
     local function _notify(x)
-        for _, x in ipairs(x._CONF_.watchers) do
-            local ok, err = pcall(x, ns, ident)
+        for _, func in ipairs(x._CONF_.watchers) do
+            local ok, err = pcall(func, ns, ident)
             if not ok then
                 lovecat.log('Error while notifying watcher:', err)
             end
         end
     end
-    x = ns
+    local x = ns
     while x ~= nil do
         _notify(x)
         x = x._CONF_.parent

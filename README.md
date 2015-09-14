@@ -12,7 +12,7 @@ whenever Lua and LuaSocket are available.
 Demo
 ----
 
-* Make sure you have LÖVE installed
+* Make sure you have LÖVE (>= 0.9.2) installed
 * Download the latest release package of Lovecat
 * Run the example LÖVE project in the release package
 * Open your browser at http://127.0.0.1:7000

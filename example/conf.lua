@@ -4,7 +4,7 @@ lovecat = require 'lovecat'
 -- lovecat = require 'lovecat-data'
 require 'cupid'
 
--- to faciliate running the demo
+-- to facilitate running the demo
 lovecat.whitelist = { '*.*.*.*' }
 lovecat.data_load = function()
     local path = love.filesystem.getSourceBaseDirectory() .. '/' .. lovecat.data_file

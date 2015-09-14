@@ -13,8 +13,8 @@ Demo
 ----
 
 * Make sure you have LÖVE installed
-* Download the latest released package of Lovecat
-* Run the example LÖVE project in the released package
+* Download the latest release package of Lovecat
+* Run the example LÖVE project in the release package
 * Open your browser at http://127.0.0.1:7000
 * Play with the browser-based UI, and watch for changes in the game window
 * (Optional) Try the same website from a tablet device
@@ -24,16 +24,12 @@ Tutorial
 
 ### Setup
 
-To setup Lovecat in your LÖVE project, you do:
-
-* `lovecat = require 'lovecat'`
-* in your `love.update(dt)`, call `lovecat.update(dt)` first.
-
-A minimal example is like:
+To setup Lovecat in your LÖVE project, a minimal example is like:
 
 ```
 function love.load()
     lovecat = require 'lovecat'
+    lovecat.reload()
 end
 
 function love.update(dt)
@@ -142,14 +138,14 @@ which uses a modified [cupid](https://bitbucket.org/basicer/cupid/).
 When hot-reloading your program, care must be taken:
 
 * Lovecat library must never be reloaded;
-* instead, `lovecat.reload()` must be called before your game program reloads;
+* instead, make sure `lovecat.reload()` is called;
 * a change of Lovecat data file should not trigger a program hot-reload.
 
 ### Data File
 
-Lovecat parameters are saved to a data file. The data file itself is a valid
-Lua program, and is meant to be a drop-in replacement for the Lovecat library.
-So you can ship your game with only the data file.
+Lovecat parameters are saved to a data file with a delay. The data file itself
+is a valid Lua program, and is meant to be a drop-in replacement for the
+Lovecat library. So you can ship your game with only the data file.
 
 ```
 # lovecat = require 'lovecat'

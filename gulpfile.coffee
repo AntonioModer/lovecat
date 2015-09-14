@@ -94,5 +94,9 @@ return lovecat
 
     fs.appendFileSync('lovecat.lua', to_append)
 
-gulp.task 'release', ['check-env', 'build-lua'], shell.task 'rm -rf lovecat.tar.bz2 && tar cjf lovecat.tar.bz2 lovecat.lua example/ LICENSE README.md'
-
+gulp.task 'release', ['check-env', 'build-lua'], shell.task [
+    'rm -rf lovecat.tar.bz2 example.love'
+    'zip -j example.love example/* lovecat.lua'
+    'tar cjf lovecat.tar.bz2 lovecat.lua example.love LICENSE README.md'
+    'rm -rf example.love'
+]

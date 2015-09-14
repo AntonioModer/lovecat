@@ -1,5 +1,5 @@
 local lovecat = {
-    _VERSION     = 'lovecat v0.0.2',
+    _VERSION     = 'lovecat v1.0.0',
     _DESCRIPTION = 'Game Parameter Editing',
     _URL         = 'https://github.com/CoffeeKitty/lovecat',
     _LICENSE     = [[
@@ -45,6 +45,8 @@ lovecat.data_load = function()
     if lovecat.file_exists(path) then
         lovecat.log('loading data from "' .. path .. '"...')
         return lovecat.file_read(path)
+    else
+        lovecat.log('Warning: data file "' .. path .. '" does not exist')
     end
 end
 lovecat.data_save = function(data)

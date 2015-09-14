@@ -1,6 +1,8 @@
 local TileSize = 25
 
 function love.load()
+    lovecat.reload()
+
     lovecat.watch_add(lovecat.grid.Scene, function()
         build_scene()
     end)

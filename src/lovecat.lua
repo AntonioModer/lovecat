@@ -36,9 +36,23 @@ local lovecat = {
 lovecat.host = "*"
 lovecat.port = 7000
 lovecat.whitelist = { "127.0.0.1", "192.168.*.*" }
-lovecat.data_file = 'lovecat-data.txt'
 lovecat.active_delay = 60 -- in seconds
 lovecat.save_delay = 1    -- in seconds
+lovecat.data_file = 'lovecat-data.txt'
+lovecat.data_load = function()
+    -- if anything goes wrong, an error should be raised by assert(false)
+    local path = './' .. lovecat.data_file
+    if lovecat.file_exists(path) then
+        lovecat.log('loading data from "' .. path .. '"...')
+        return lovecat.file_read(path)
+    end
+end
+lovecat.data_save = function(data)
+    -- if anything goes wrong, an error should be raised by assert(false)
+    local path = './' .. lovecat.data_file
+    lovecat.log('writing data to "' .. path .. '"...')
+    lovecat.file_safe_write(path, data)
+end
 
 function lovecat.init_confs()
     lovecat.number = lovecat.namespace_root({
@@ -164,7 +178,7 @@ function lovecat.data_app_get(ns, ident)
             new_val = new_val(ns, ident)
         end
         data[ident] = new_val
-        lovecat.data_save()
+        lovecat.data_do_save()
         lovecat.data_inc_version()
     end
     return data[ident]
@@ -204,39 +218,50 @@ function lovecat.data_client_set(ns, ident, new_val)
     if data == nil then return false end
     if data[ident] == nil then return false end
     data[ident] = new_val
-    lovecat.data_save()
+    lovecat.data_do_save()
     lovecat.data_inc_version()
     lovecat.watch_notify(ns, ident)
     return true
 end
 
-function lovecat.data_load()
-    if not lovecat.file_exists(lovecat.data_file) then
-        lovecat.log('Warning: saved file does not exist; using a new lovecat tree')
+function lovecat.data_do_load()
+    local ok, ret = pcall(lovecat.data_load)
+    if not ok then
+        assert(false, 'failed to load data: ' .. ret)
+    end
+
+    if ret == nil then
+        lovecat.log('Warning: creating a new lovecat tree..')
         lovecat.data = {}
         lovecat.data_version = 0
         return
     end
-    local ok, res = pcall(loadfile, lovecat.data_file)
-    if not ok or res == nil or
-        not pcall(function() res = res() end) then
-        lovecat.log('Error: failed to load saved file "' .. lovecat.data_file .. '"')
-        assert(false, 'failed to load savefile')
-    else
-        lovecat.data = res
-        lovecat.data_version = 0
+
+    ok, ret = loadstring(ret, 'lovecat-data')
+    if ok == nil then
+        assert(false, 'data is corrupted: ' .. ret)
     end
+
+    ok, ret = pcall(ok)
+    if not ok then
+        assert(false, 'data is corrupted: ' .. ret)
+    end
+
+    lovecat.data = ret
+    lovecat.data_version = 0
 end
 
 function lovecat.data_actual_save()
-    local save_tmp = lovecat.data_file .. '.tmp'
-    local out = io.output(save_tmp)
+    local tmp = {}
+    local function write(str)
+        table.insert(tmp, str)
+    end
 
-    out:write('local lovecat = {}\n\n\n-- namespaces:\n')
+    write('local lovecat = {}\n\n\n-- namespaces:\n')
 
     local function write_namespaces(prefix, data)
         if data == nil then return end
-        out:write(prefix .. ' = {}\n')
+        write(prefix .. ' = {}\n')
         for _,k in ipairs(lovecat.table_sorted_keys(data)) do
             if k ~= '_CONF_' and not lovecat.namespace_isleaf(k) then
                 write_namespaces(prefix..'.'..k, data[k])
@@ -246,7 +271,7 @@ function lovecat.data_actual_save()
     for _,k in ipairs(lovecat.roots) do
         write_namespaces('lovecat.'..k, lovecat.data[k])
     end
-    out:write("\n\n-- saved parameters:\n")
+    write("\n\n-- saved parameters:\n")
 
     local function write_data(prefix, data, ns)
         if data == nil then return end
@@ -256,7 +281,7 @@ function lovecat.data_actual_save()
                     local res = ns._CONF_.data_to_file(ns, data[k])
                     local str_k
                     if type(k) == 'number' then str_k = '['..k..']' else str_k = '.'..k end
-                    out:write(prefix .. str_k .. ' = ' .. res .. '\n')
+                    write(prefix .. str_k .. ' = ' .. res .. '\n')
                 else
                     write_data(prefix..'.'..k, data[k], ns[k])
                 end
@@ -267,9 +292,9 @@ function lovecat.data_actual_save()
         write_data('lovecat.'..k, lovecat.data[k], lovecat[k])
     end
 
-    out:write('\n\n')
+    write('\n\n')
 
-    out:write [[
+    write [[
 -- The following code tries to make the data file a drop-in
 -- replacement for lovecat.lua
 
@@ -300,41 +325,32 @@ lovecat.reload       = function() end
 
 return lovecat
 ]]
-    out:close()
 
-    local ok, err = os.rename(save_tmp, lovecat.data_file)
+    local data = table.concat(tmp)
+    local ok, msg = pcall(lovecat.data_save, data)
     if not ok then
-        -- for Windows
-        local save_ori = lovecat.data_file .. '.ori'
-        os.remove(save_ori)
-        os.rename(lovecat.data_file, save_ori)
-        local ok, err = os.rename(save_tmp, lovecat.data_file)
-        if not ok then
-            os.rename(save_ori, lovecat.data_file)
-            lovecat.log('unable to save data: ' .. err)
-        else
-            os.remove(save_ori)
-        end
+        lovecat.log('Error: failed to save data: ' .. msg)
     end
-    lovecat.log('saved to "' .. lovecat.data_file .. '"')
 end
 
--- Will actually write to disk after 1 second
-function lovecat.data_save()
-    lovecat.save_timer = lovecat.clock + lovecat.save_delay
+-- Will actually write to disk after a delay
+function lovecat.data_do_save()
+    if lovecat.save_timer == nil then
+        lovecat.save_timer = lovecat.clock + lovecat.save_delay
+    end
 end
 
 function lovecat.data_save_timer_reset()
     if lovecat.save_timer then
-        lovecat.data_actual_save()
         lovecat.save_timer = nil
+        lovecat.data_actual_save()
     end
 end
 
 function lovecat.data_save_timer_check()
     if lovecat.save_timer and lovecat.save_timer < lovecat.clock then
-        lovecat.data_actual_save()
         lovecat.save_timer = nil
+        lovecat.data_actual_save()
     end
 end
 
@@ -499,7 +515,7 @@ function lovecat.reload()
     lovecat.clock = 0
     lovecat.instance_renew()
     lovecat.active_reset()
-    lovecat.data_load()
+    lovecat.data_do_load()
     lovecat.watch_reset()
     lovecat.data_save_timer_reset()
 end
@@ -637,9 +653,42 @@ function lovecat.file_exists(filename)
     end
 end
 
+function lovecat.file_read(path)
+    local file = io.input(path)
+    local ans = file:read('*a')
+    file:close()
+    assert(ans, 'cannot read file: "' .. path .. '"')
+    return ans
+end
+
+function lovecat.file_safe_write(path, content)
+    local path_tmp = path .. '.tmp'
+    local out = io.output(path_tmp)
+    out:write(content)
+    out:close()
+
+    local ok, err = os.rename(path_tmp, path)
+    if not ok then
+        -- for Windows
+        local path_ori = path .. '.ori'
+        os.remove(path_ori)
+        local ok, err = os.rename(path, path_ori)
+        if not ok then
+            assert(false, 'unable to write to "'..path..'": ' .. err)
+        end
+        local ok, err = os.rename(path_tmp, path)
+        if not ok then
+            os.rename(path_ori, path)
+            assert(false, 'unable to write to "'..path..'": ' .. err)
+        else
+            os.remove(path_ori)
+        end
+    end
+end
+
 function lovecat.static_file(filename)
     return function()
-        return io.input(filename):read('*a')
+        return lovecat.file_read(filename)
     end
 end
 
@@ -704,8 +753,6 @@ end
 lovecat.roots = {}
 lovecat.roots_hash = {}
 lovecat.init_confs()
-
-lovecat.reload()
 
 lovecat.pages = {}
 lovecat.pages_mime = {}

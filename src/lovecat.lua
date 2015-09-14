@@ -1,5 +1,5 @@
 local lovecat = {
-    _VERSION     = 'lovecat v0.0.1',
+    _VERSION     = 'lovecat v0.0.2',
     _DESCRIPTION = 'Game Parameter Editing',
     _URL         = 'https://github.com/CoffeeKitty/lovecat',
     _LICENSE     = [[

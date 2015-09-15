@@ -82,7 +82,7 @@ other type, you can always try to blend existing parameter types in some way.
 | number  | a floating number in [0, 1]              | `0.71234`                   |
 | point   | a 2D point in a square                   | `{-0.923, 0.433}`           |
 | color   | a color                                  | `{183.134, 75.034, 1.030}`  |
-| grid    | a infinite grid of ASCII characters      | `{{-1,3,'a'}, {4,-12,'b'}}` |
+| grid    | an infinite grid of ASCII characters     | `{{-1,3,'a'}, {4,-12,'b'}}` |
 
 Notes:
 

@@ -14,8 +14,6 @@ function love.load()
     end)
 
     world = love.physics.newWorld()
-    build_scene()
-
     world:setCallbacks(
         function(a, b, contact)
             local other
@@ -64,6 +62,12 @@ function love.load()
         end,
         nil
     )
+
+    coins = {}
+    walls = {}
+    player = nil
+
+    build_scene()
 
     love.graphics.setFont(love.graphics.newFont(14))
     love.graphics.setBackgroundColor(255,255,255)
@@ -154,7 +158,6 @@ end
 
 function love.keypressed(key)
     if key == 'r' then
-        lovecat.reload()
         cupid.reload()
     elseif key == ' ' then
         jump_signal = true
@@ -181,11 +184,9 @@ function build_scene()
 
     local tiles = lovecat.grid.Scene.tiles
 
-    if walls == nil then walls = {} end
     for _, x in ipairs(walls) do x:destroy() end
     walls = {}
 
-    if coins == nil then coins = {} end
     for x in pairs(coins) do x:destroy() end
     coins = {}
     coins_eaten = {}

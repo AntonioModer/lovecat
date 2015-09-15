@@ -74,8 +74,7 @@ referenced, it will be assigned a default value.
 
 ### Parameter Types
 
-Lovecat only offers several primitive types of parameters. When you need some
-other type, you can always try to blend existing parameter types in some way.
+Lovecat offers the following primitive parameter types.
 
 | Type    | Meaning                                  | Example value               |
 |:-------:|------------------------------------------|-----------------------------|

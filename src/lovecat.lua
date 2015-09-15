@@ -28,8 +28,8 @@ local lovecat = {
 
         ---------------
 
-        This file may contain several frontend libraries. See LICENSE for
-        details.
+        Part of this software is based on lovebird, and this software may
+        contain several frontend libraries. See LICENSE file for details.
     ]]
 }
 

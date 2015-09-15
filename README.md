@@ -34,13 +34,14 @@ end
 
 function love.update(dt)
     lovecat.update(dt)
-    # other updates
+    -- other updates
 end
 
 function love.draw()
-    local ax, ay = lovecat.point.Example.a
-    local bx, by = lovecat.point.Example.b
-    love.graphics.line(ax*500, ay*500, bx*500, by*500)
+    local ax, ay = unpack(lovecat.point.Example.a)
+    local bx, by = unpack(lovecat.point.Example.b)
+    local function f(x) return 300+x*300 end
+    love.graphics.line(f(ax), f(-ay), f(bx), f(-by))
 end
 ```
 
@@ -48,8 +49,8 @@ end
 
 With Lovecat, you edit your game by editing game parameters. Game parameters
 can represent the amount of gravity, a polygon shape of a game object, a tile
-map, etc. Generally, game parameters can be anything that is a constant to the
-game program, and usually requires careful tunning.
+map, etc. Generally, a game parameter can be anything that is a constant to
+the game program, and usually requires careful tunning.
 
 A Lovecat parameter is referenced by a scoped name. For example, each of the
 following expressions references one game parameter.
@@ -85,19 +86,20 @@ other type, you can always try to blend existing parameter types in some way.
 
 Notes:
 
-* both X and Y coordinates of point values are in [-1,1];
+* point values are in the form `{x, y}`, where both `x` and `y` are in [-1,1];
 
 * color values are in HSV color space, and (H,S,V) components are in [0,360),
   [0,100], [0,100] repectively. Outstanding bug: color space and gamma
-  correction are not treatedly seriously at this time.
+  correction are not treatedly seriously at this time. (I am considering to
+  switch to sRGB, as it is better defined);
 
-* grid values are a list of `{x, y, character}`, where `character` must be a
+* grid values are a list of `{x, y, character}`, where `character` is a
   non-space printable ASCII character.
 
 ### Parameter Namespaces
 
-Lovecat parameters can be organized in hierarchical namespaces. There is one
-root namespace for each parameter type:
+Lovecat parameters are organized in hierarchical namespaces. There is one root
+namespace for each parameter type:
 
 ```
 lovecat.number
@@ -106,19 +108,24 @@ lovecat.color
 lovecat.grid
 ```
 
-Namespace names are recognized with a starting capital letter. Namespace
-objects can be saved to a variable to eliminate some code repeats:
+Namespace names are recognized with a starting capital letter. Namespaces
+can be freely manipulated:
 
 ```
+print(lovecat.point.SceneA)
+print(lovecat.point.SceneA == lovecat.point.SceneA)
+print(lovecat.point['SceneA'] == lovecat.point.SceneA)
+print(lovecat.point.SceneA ~= lovecat.point.SceneB)
+
 local scene = lovecat.point.SceneA
-print(scene.BigCat.left_eye)
-print(scene.BigDog.right_eye)
+print(unpack(scene.BigCat.left_eye))
+print(unpack(scene.BigDog.right_eye))
 ```
 
 ### Parameter Blending
 
 When you need some parameter type that is not directly supported by Lovecat,
-you can try blending existing types. For example, when you need a number
+you can try blending existing ones. For example, when you need a number
 parameter in the range `[1000, 2000]`, you can do this:
 
 ```
@@ -138,25 +145,29 @@ which uses a modified [cupid](https://bitbucket.org/basicer/cupid/).
 When hot-reloading your program, care must be taken:
 
 * Lovecat library must never be reloaded;
-* instead, make sure `lovecat.reload()` is called;
+* instead, call `lovecat.reload()` if you want to reset Lovecat's internal states (e.g. registered watchers);
 * a change of Lovecat data file should not trigger a program hot-reload.
 
 ### Data File
 
-Lovecat parameters are saved to a data file with a delay. The data file itself
-is a valid Lua program, and is meant to be a drop-in replacement for the
-Lovecat library. So you can ship your game with only the data file.
+Lovecat parameters are saved to a data file with a delay. **Backup your data
+file often** (you can use a VCS), as it may contain valuable information of
+your game. The data file itself is a valid Lua program, and is intended as a
+drop-in replacement for the Lovecat library. So you can ship your game with
+only the data file.
 
 ```
-# lovecat = require 'lovecat'
-lovecat = require 'lovecat-saved.txt'
+package.path = '?.txt;' .. package.path
+
+-- lovecat = require 'lovecat'
+lovecat = require 'lovecat-data'
 ```
 
 ### Watch for Parameter Changes
 
-Most of the time you should refetch Lovecat parameter values in each frame, so
-when Lovecat updates a parameter, it takes effect automatically. But
-sometimes, watching for parameter changes can be helpful.
+Most of the time you'll want to refetch Lovecat parameter values in each
+frame, so when Lovecat updates a parameter, it takes effect automatically. But
+sometimes, getting notified of parameter changes can be helpful.
 
 * `lovecat.watch_add(ns, func)`
 
@@ -177,7 +188,8 @@ sometimes, watching for parameter changes can be helpful.
 | point   | `t`                         | Toggle showing/hiding data labels |
 | color   | `t`                         | Toggle showing/hiding data labels |
 | color   | `1` `2` `3`                 | Switch to `HS` `HV` or `SV`       |
-| grid    | right mouse drag            | Panning                           |
+| grid    | `right mouse drag`          | Panning                           |
+| grid    | `Ctrl-left mouse drag`      | Panning                           |
 | grid    | `Ctrl-U` `Ctrl-H`           | Undo                              |
 | grid    | `Ctrl-R` `Ctrl-L`           | Redo                              |
 | grid    | `Ctrl-O`                    | Return to the origin              |
@@ -193,8 +205,8 @@ There are some configuration parameters at the beginning of `lovecat.lua`.
 Background
 ----------
 
-This tool is inspired by Bret Victor's Inventing on Principle,
-and [lovebird](https://github.com/rxi/lovebird).
+Lovecat is inspired by Bret Victor's Inventing on Principle, and
+[lovebird](https://github.com/rxi/lovebird).
 
 License
 -------
